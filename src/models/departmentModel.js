@@ -32,6 +32,37 @@ export async function listDepartments({ activeOnly = false, facultyId } = {}) {
   return query;
 }
 
+export async function getDepartmentById(id) {
+  return db('departments').select(departmentColumns).where({ id }).first();
+}
+
+export async function createDepartment(payload) {
+  const [created] = await db('departments')
+    .insert({
+      ...payload,
+      created_at: db.fn.now(),
+      updated_at: db.fn.now(),
+    })
+    .returning(departmentColumns);
+
+  return created;
+}
+
+export async function updateDepartmentById(id, payload) {
+  const [updated] = await db('departments')
+    .where({ id })
+    .update({
+      ...payload,
+      updated_at: db.fn.now(),
+    })
+    .returning(departmentColumns);
+
+  return updated;
+}
+
 export default {
   listDepartments,
+  getDepartmentById,
+  createDepartment,
+  updateDepartmentById,
 };

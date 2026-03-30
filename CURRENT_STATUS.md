@@ -54,6 +54,7 @@
 - ✅ Role-based authorization middleware implemented (`authorizeAny`)
 - ✅ Initial core model layer implemented (User, Role, University, Faculty, Department)
 - ✅ Protected organization endpoints implemented (`/api/organization/university`, `/api/organization/faculties`, `/api/organization/departments`)
+- ✅ Organization write endpoints implemented (`PATCH /api/organization/university`, `POST/PATCH faculties`, `POST/PATCH departments`)
 
 ### Frontend Planning: ✅ **COMPLETE**
 - ✅ Tech stack selected (React + TypeScript + Vite)
@@ -84,6 +85,7 @@
 - [x] Create auth middleware and protected auth route handling
 - [x] Implement role-based authorization for initial protected modules
 - [x] Implement initial organizational read endpoints with access control
+- [x] Implement initial organizational write endpoints with role/scope constraints
 
 **Frontend Tasks**:
 - [ ] Create Vite + React project
@@ -165,11 +167,11 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 ## 🎯 Next Immediate Steps
 
 ### For Backend Developer
-1. Expand authorization policy coverage to additional route groups
-2. Add write endpoints for organizational management (create/update/deactivate)
-3. Add ESLint configuration so `npm run lint` becomes operational
-4. Add integration tests for auth and authorization flows
-5. Start student portal endpoints (profile/enrollments/grades)
+1. Expand authorization policy coverage to student/professor/admin route groups
+2. Add ESLint configuration so `npm run lint` becomes operational
+3. Add integration tests for auth and authorization flows
+4. Start student portal endpoints (profile/enrollments/grades)
+5. Start professor portal endpoints (sections/grades/attendance)
 
 ### For Frontend Developer
 1. **Read**: QUICK_REFERENCE.md for fast lookup
@@ -205,7 +207,7 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 
 **What's NOT Ready** (Current Gaps):
 - Authorization policy coverage across all route groups
-- Feature endpoints beyond auth, organization reads, and seed tooling
+- Feature endpoints beyond auth and initial organization module
 - Frontend project scaffold and UI implementation
 - Integration and E2E test coverage
 
