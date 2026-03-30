@@ -196,6 +196,49 @@ describe('Announcements and notifications integration', () => {
     expect(updatedAnnouncement.is_enabled).toBe(false);
   });
 
+  test('notification quiet-hours endpoints read and update user settings', async () => {
+    const hasQuietHoursTable = await db.schema.hasTable('notification_quiet_hours');
+
+    if (!hasQuietHoursTable) {
+      await db.schema.createTable('notification_quiet_hours', (table) => {
+        table.bigIncrements('id').primary();
+        table.bigInteger('user_id').unsigned().notNullable().unique();
+        table.string('start_time', 5).notNullable();
+        table.string('end_time', 5).notNullable();
+        table.string('timezone', 64).notNullable().defaultTo('UTC');
+        table.boolean('is_enabled').notNullable().defaultTo(false);
+        table.timestamps(true, true);
+
+        table.foreign('user_id').references('id').inTable('users').onDelete('CASCADE');
+      });
+    }
+
+    const getRes = await request(app)
+      .get('/api/notifications/quiet-hours')
+      .set('Authorization', `Bearer ${studentToken}`)
+      .expect(200);
+
+    expect(getRes.body.data.quiet_hours).toBeTruthy();
+
+    const updateRes = await request(app)
+      .put('/api/notifications/quiet-hours')
+      .set('Authorization', `Bearer ${studentToken}`)
+      .send({
+        quiet_hours: {
+          start_time: '23:00',
+          end_time: '06:30',
+          timezone: 'Africa/Cairo',
+          is_enabled: true,
+        },
+      })
+      .expect(200);
+
+    expect(updateRes.body.data.quiet_hours.start_time).toBe('23:00');
+    expect(updateRes.body.data.quiet_hours.end_time).toBe('06:30');
+    expect(updateRes.body.data.quiet_hours.timezone).toBe('Africa/Cairo');
+    expect(updateRes.body.data.quiet_hours.is_enabled).toBe(true);
+  });
+
   test('webhook management endpoints allow user-scoped CRUD', async () => {
     if (!canRun || !canRunWebhooks) {
       return;

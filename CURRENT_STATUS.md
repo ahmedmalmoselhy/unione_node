@@ -80,6 +80,7 @@
 - ✅ Admin analytics endpoints implemented (`GET /api/admin/analytics/ratings`, `GET /api/admin/analytics/attendance`)
 - ✅ Admin failed webhook deliveries endpoint implemented (`GET /api/admin/webhooks/failed`)
 - ✅ Webhook dead-letter endpoints implemented (`GET /api/webhooks/dead-letter`, `POST /api/webhooks/dead-letter/:deliveryId/retry`)
+- ✅ Notification quiet-hours controls implemented (`GET/PUT /api/notifications/quiet-hours`)
 
 ### Frontend Planning: ✅ **COMPLETE**
 - ✅ Tech stack selected (React + TypeScript + Vite)
@@ -198,7 +199,6 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 ### For Backend Developer
 1. Expand authorization policy coverage to student/professor/admin route groups
 2. Add attendance summary endpoint grouped by section/course with date filters
-3. Add per-user mute windows (quiet hours) for notifications
 
 ### For Frontend Developer
 1. **Read**: QUICK_REFERENCE.md for fast lookup

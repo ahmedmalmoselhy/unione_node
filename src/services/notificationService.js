@@ -1,6 +1,7 @@
 import AppError from '../utils/AppError.js';
 import notificationModel from '../models/notificationModel.js';
 import notificationPreferenceModel from '../models/notificationPreferenceModel.js';
+import notificationQuietHoursModel from '../models/notificationQuietHoursModel.js';
 
 const DEFAULT_EVENT_TYPES = [
   'announcement.new',
@@ -60,6 +61,35 @@ export async function updateMyNotificationPreferences(user, preferences) {
   return listMyNotificationPreferences(user);
 }
 
+export async function getMyNotificationQuietHours(user) {
+  const row = await notificationQuietHoursModel.getQuietHoursByUserId(user.id);
+
+  if (!row) {
+    return {
+      quiet_hours: {
+        start_time: '22:00',
+        end_time: '07:00',
+        timezone: 'UTC',
+        is_enabled: false,
+      },
+    };
+  }
+
+  return {
+    quiet_hours: {
+      start_time: row.start_time,
+      end_time: row.end_time,
+      timezone: row.timezone,
+      is_enabled: row.is_enabled,
+    },
+  };
+}
+
+export async function updateMyNotificationQuietHours(user, quietHours) {
+  await notificationQuietHoursModel.upsertQuietHours(user.id, quietHours);
+  return getMyNotificationQuietHours(user);
+}
+
 export default {
   listMyNotifications,
   markNotificationAsRead,
@@ -67,4 +97,6 @@ export default {
   removeNotification,
   listMyNotificationPreferences,
   updateMyNotificationPreferences,
+  getMyNotificationQuietHours,
+  updateMyNotificationQuietHours,
 };

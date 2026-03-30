@@ -55,6 +55,24 @@ export async function updateNotificationPreferences(req, res, next) {
   }
 }
 
+export async function getNotificationQuietHours(req, res, next) {
+  try {
+    const result = await notificationService.getMyNotificationQuietHours(req.user);
+    return res.status(200).json(success(result, 'Notification quiet hours fetched successfully', 200));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function updateNotificationQuietHours(req, res, next) {
+  try {
+    const result = await notificationService.updateMyNotificationQuietHours(req.user, req.body.quiet_hours);
+    return res.status(200).json(success(result, 'Notification quiet hours updated successfully', 200));
+  } catch (error) {
+    return next(error);
+  }
+}
+
 export default {
   listNotifications,
   markNotificationRead,
@@ -62,4 +80,6 @@ export default {
   deleteNotification,
   listNotificationPreferences,
   updateNotificationPreferences,
+  getNotificationQuietHours,
+  updateNotificationQuietHours,
 };

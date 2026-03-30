@@ -9,9 +9,14 @@ import {
   deleteNotification,
   listNotificationPreferences,
   updateNotificationPreferences,
+  getNotificationQuietHours,
+  updateNotificationQuietHours,
 } from '../controllers/notificationController.js';
 import { notificationIdParamSchema } from '../validators/notificationValidators.js';
-import { updateNotificationPreferencesSchema } from '../validators/notificationPreferenceValidators.js';
+import {
+  updateNotificationPreferencesSchema,
+  updateNotificationQuietHoursSchema,
+} from '../validators/notificationPreferenceValidators.js';
 import { writeLimiter } from '../middleware/rateLimiters.js';
 
 const router = express.Router();
@@ -22,6 +27,8 @@ router.use(authenticate);
 router.get('/', listNotifications);
 router.get('/preferences', listNotificationPreferences);
 router.put('/preferences', writeLimiter, validate(updateNotificationPreferencesSchema), updateNotificationPreferences);
+router.get('/quiet-hours', getNotificationQuietHours);
+router.put('/quiet-hours', writeLimiter, validate(updateNotificationQuietHoursSchema), updateNotificationQuietHours);
 router.post('/read-all', markAllNotificationsRead);
 router.post('/:id/read', validate(notificationIdParamSchema, 'params'), markNotificationRead);
 router.delete('/:id', validate(notificationIdParamSchema, 'params'), deleteNotification);
