@@ -12,6 +12,7 @@ import {
   upsertAttendanceRecords,
   listAttendanceRecordsBySession,
 } from '../models/professorModel.js';
+import { dispatchWebhookEvent } from './webhookService.js';
 
 function computeGrade(total) {
   if (total >= 97) return { letter_grade: 'A+', grade_points: 4.0 };
@@ -93,6 +94,13 @@ export async function submitProfessorSectionGrades(userId, sectionId, grades) {
 
   await upsertSectionGrades(gradeRows, userId);
 
+  await dispatchWebhookEvent('grades.submitted', {
+    professor_user_id: userId,
+    section_id: sectionId,
+    grades_count: gradeRows.length,
+    enrollment_ids: gradeRows.map((row) => row.enrollment_id),
+  });
+
   return listProfessorSectionGrades(userId, sectionId);
 }
 
@@ -102,7 +110,16 @@ export async function createProfessorAttendanceSession(userId, sectionId, { sess
     return null;
   }
 
-  return createAttendanceSession(sectionId, userId, sessionDate, topic);
+  const created = await createAttendanceSession(sectionId, userId, sessionDate, topic);
+
+  await dispatchWebhookEvent('attendance.session_created', {
+    session_id: created.id,
+    section_id: created.section_id,
+    created_by: created.created_by,
+    session_date: created.session_date,
+  });
+
+  return created;
 }
 
 export async function getProfessorAttendanceSessions(userId, sectionId) {
@@ -142,6 +159,13 @@ export async function updateProfessorAttendanceRecords(userId, sectionId, sessio
   }
 
   await upsertAttendanceRecords(sessionId, records);
+  await dispatchWebhookEvent('attendance.records_updated', {
+    professor_user_id: userId,
+    section_id: sectionId,
+    attendance_session_id: sessionId,
+    records_count: records.length,
+  });
+
   return getProfessorAttendanceSessionDetails(userId, sectionId, sessionId);
 }
 

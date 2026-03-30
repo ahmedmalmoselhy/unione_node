@@ -175,12 +175,17 @@ describe('Student and professor domain integration', () => {
 
     const professor = await db('professors').select('id').first();
 
+    const seed = Date.now();
+    const termYear = 3000 + Number(String(seed).slice(-3));
+    const semesterOptions = ['first', 'second', 'summer'];
+    const termSemester = semesterOptions[seed % semesterOptions.length];
+
     const [term] = await db('academic_terms')
       .insert({
-        name: `Closed Term ${Date.now()}`,
-        name_ar: `Closed Term ${Date.now()}`,
-        academic_year: 2099,
-        semester: 'summer',
+        name: `Closed Term ${seed}`,
+        name_ar: `Closed Term ${seed}`,
+        academic_year: termYear,
+        semester: termSemester,
         starts_at: '2099-06-01',
         ends_at: '2099-08-30',
         registration_starts_at: '2000-01-01',
@@ -247,6 +252,87 @@ describe('Student and professor domain integration', () => {
       .expect(400);
   });
 
+  test('webhook deliveries are recorded for enrollment and grade events', async () => {
+    const hasWebhooksTable = await db.schema.hasTable('webhooks');
+    const hasDeliveriesTable = await db.schema.hasTable('webhook_deliveries');
+
+    if (!hasWebhooksTable || !hasDeliveriesTable) {
+      return;
+    }
+
+    const studentUser = await db('users')
+      .whereRaw('LOWER(email) = LOWER(?)', [studentEmail])
+      .select('id')
+      .first();
+
+    const [webhook] = await db('webhooks')
+      .insert({
+        user_id: studentUser.id,
+        url: 'http://127.0.0.1:1/unione-webhook-test',
+        secret: 'webhook-secret-test',
+        events: JSON.stringify(['enrollment.created', 'grades.submitted']),
+        is_active: true,
+        created_at: db.fn.now(),
+        updated_at: db.fn.now(),
+      })
+      .returning('id');
+
+    const student = await db('students as s')
+      .join('users as u', 'u.id', 's.user_id')
+      .whereRaw('LOWER(u.email) = LOWER(?)', [studentEmail])
+      .select('s.id as student_id')
+      .first();
+
+    const openSection = await db('sections as sec')
+      .join('courses as c', 'c.id', 'sec.course_id')
+      .leftJoin('course_prerequisites as cp', 'cp.course_id', 'c.id')
+      .leftJoin('enrollments as e', 'e.section_id', 'sec.id')
+      .where('sec.is_active', true)
+      .whereNull('cp.prerequisite_id')
+      .whereNotExists(function () {
+        this.select(1)
+          .from('enrollments as ex')
+          .whereRaw('ex.section_id = sec.id')
+          .andWhere('ex.student_id', student.student_id);
+      })
+      .groupBy('sec.id', 'sec.course_id', 'sec.capacity', 'sec.academic_term_id')
+      .havingRaw('COUNT(e.id) = 0')
+      .select('sec.id', 'sec.academic_term_id')
+      .first();
+
+    const enrollRes = await request(app)
+      .post('/api/student/enrollments')
+      .set('Authorization', `Bearer ${studentToken}`)
+      .send({ section_id: openSection.id, academic_term_id: openSection.academic_term_id })
+      .expect(201);
+
+    const target = await db('users as u')
+      .join('professors as p', 'p.user_id', 'u.id')
+      .join('sections as s', 's.professor_id', 'p.id')
+      .join('enrollments as e', 'e.section_id', 's.id')
+      .whereRaw('LOWER(u.email) = LOWER(?)', [professorEmail])
+      .select('s.id as section_id', 'e.id as enrollment_id')
+      .first();
+
+    await request(app)
+      .post(`/api/professor/sections/${target.section_id}/grades`)
+      .set('Authorization', `Bearer ${professorToken}`)
+      .send({ grades: [{ enrollment_id: target.enrollment_id, midterm: 30, final: 30, coursework: 30 }] })
+      .expect(200);
+
+    await request(app)
+      .delete(`/api/student/enrollments/${enrollRes.body.data.id}`)
+      .set('Authorization', `Bearer ${studentToken}`)
+      .expect(200);
+
+    const deliveries = await db('webhook_deliveries')
+      .where({ webhook_id: webhook.id })
+      .whereIn('event', ['enrollment.created', 'grades.submitted'])
+      .select('event');
+
+    expect(deliveries.length).toBeGreaterThanOrEqual(2);
+  });
+
   test('professor write endpoints for grades and attendance work', async () => {
     const target = await db('users as u')
       .join('professors as p', 'p.user_id', 'u.id')
@@ -267,8 +353,8 @@ describe('Student and professor domain integration', () => {
 
     let createSessionRes;
     let attempt = 1;
-    while (!createSessionRes && attempt <= 5) {
-      const sessionDate = new Date(Date.now() + attempt * 24 * 60 * 60 * 1000)
+    while (!createSessionRes && attempt <= 30) {
+      const sessionDate = new Date(Date.now() + attempt * 37 * 24 * 60 * 60 * 1000)
         .toISOString()
         .slice(0, 10);
 

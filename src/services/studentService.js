@@ -19,6 +19,7 @@ import {
   listStudentGradesByUserId,
 } from '../models/studentModel.js';
 import { buildScheduleIcs, buildTranscriptPdfBuffer } from '../utils/exportBuilders.js';
+import { dispatchWebhookEvent } from './webhookService.js';
 
 function toDateOnly(value) {
   if (!value) {
@@ -179,6 +180,14 @@ export async function enrollInSection(userId, { section_id: sectionId, academic_
     academicTermId: academicTermId || section.academic_term_id,
   });
 
+  await dispatchWebhookEvent('enrollment.created', {
+    enrollment_id: created.id,
+    student_id: created.student_id,
+    section_id: created.section_id,
+    academic_term_id: created.academic_term_id,
+    status: created.status,
+  });
+
   return { ok: true, data: created };
 }
 
@@ -211,15 +220,30 @@ export async function dropEnrollment(userId, enrollmentId) {
     if (next) {
       const existing = await findEnrollmentByStudentAndSection(next.student_id, dropped.section_id);
       if (!existing) {
-        await createEnrollment({
+        const promoted = await createEnrollment({
           studentId: next.student_id,
           sectionId: dropped.section_id,
           academicTermId: next.academic_term_id,
+        });
+
+        await dispatchWebhookEvent('waitlist.promoted', {
+          enrollment_id: promoted.id,
+          student_id: promoted.student_id,
+          section_id: promoted.section_id,
+          academic_term_id: promoted.academic_term_id,
         });
       }
       await normalizeWaitlistPositions(dropped.section_id);
     }
   }
+
+  await dispatchWebhookEvent('enrollment.dropped', {
+    enrollment_id: dropped.id,
+    student_id: dropped.student_id,
+    section_id: dropped.section_id,
+    academic_term_id: dropped.academic_term_id,
+    status: dropped.status,
+  });
 
   return { ok: true, data: dropped };
 }

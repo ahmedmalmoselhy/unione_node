@@ -68,6 +68,7 @@
 - ✅ Notification center endpoints implemented (`GET /api/notifications`, `POST /api/notifications/read-all`, `POST /api/notifications/:id/read`, `DELETE /api/notifications/:id`)
 - ✅ Student export endpoints implemented (`GET /api/student/transcript`, `GET /api/student/transcript/pdf`, `GET /api/student/schedule`, `GET /api/student/schedule/ics`)
 - ✅ Advanced enrollment constraints implemented (term registration window checks and withdrawal deadline enforcement)
+- ✅ Webhook dispatch pipeline implemented for enrollment/grade/attendance events with delivery logging and failure tracking
 
 ### Frontend Planning: ✅ **COMPLETE**
 - ✅ Tech stack selected (React + TypeScript + Vite)
@@ -102,6 +103,7 @@
 - [x] Implement admin announcement and notification management endpoints
 - [x] Implement student transcript and schedule export endpoints (PDF/iCal)
 - [x] Implement advanced enrollment constraints (term window/deadlines)
+- [x] Add webhook event dispatches on enrollment/grade/attendance changes
 
 **Frontend Tasks**:
 - [ ] Create Vite + React project
@@ -184,10 +186,10 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 
 ### For Backend Developer
 1. Expand authorization policy coverage to student/professor/admin route groups
-2. Add webhook event dispatches on enrollment/grade/attendance changes
-3. Expand integration tests for announcement and notification endpoints
-4. Add integration tests for export endpoint edge cases (empty schedule/transcript)
-5. Begin attendance summary and rating endpoints from the roadmap
+2. Expand integration tests for announcement and notification endpoints
+3. Add integration tests for export endpoint edge cases (empty schedule/transcript)
+4. Begin attendance summary and rating endpoints from the roadmap
+5. Add webhook registration/list management APIs
 
 ### For Frontend Developer
 1. **Read**: QUICK_REFERENCE.md for fast lookup
