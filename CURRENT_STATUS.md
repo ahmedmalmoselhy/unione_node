@@ -55,6 +55,7 @@
 - ✅ Initial core model layer implemented (User, Role, University, Faculty, Department)
 - ✅ Protected organization endpoints implemented (`/api/organization/university`, `/api/organization/faculties`, `/api/organization/departments`)
 - ✅ Organization write endpoints implemented (`PATCH /api/organization/university`, `POST/PATCH faculties`, `POST/PATCH departments`)
+- ✅ ESLint configured and lint script operational
 
 ### Frontend Planning: ✅ **COMPLETE**
 - ✅ Tech stack selected (React + TypeScript + Vite)
@@ -168,10 +169,10 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 
 ### For Backend Developer
 1. Expand authorization policy coverage to student/professor/admin route groups
-2. Add ESLint configuration so `npm run lint` becomes operational
-3. Add integration tests for auth and authorization flows
-4. Start student portal endpoints (profile/enrollments/grades)
-5. Start professor portal endpoints (sections/grades/attendance)
+2. Add integration tests for auth and authorization flows
+3. Start student portal endpoints (profile/enrollments/grades)
+4. Start professor portal endpoints (sections/grades/attendance)
+5. Add request rate-limiting policies per sensitive endpoint group
 
 ### For Frontend Developer
 1. **Read**: QUICK_REFERENCE.md for fast lookup

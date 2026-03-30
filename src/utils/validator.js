@@ -1,5 +1,3 @@
-import Joi from 'joi';
-
 /**
  * Validation middleware factory
  * @param {object} schema - Joi validation schema
