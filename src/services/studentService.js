@@ -3,6 +3,12 @@ import {
   findStudentByUserId,
   findSectionById,
   countRegisteredInSection,
+  findWaitlistEntry,
+  createWaitlistEntry,
+  listWaitlistByUserId,
+  deleteWaitlistByUserAndSection,
+  popNextWaitlistEntry,
+  normalizeWaitlistPositions,
   findEnrollmentByStudentAndSection,
   createEnrollment,
   findEnrollmentByIdAndUserId,
@@ -60,7 +66,22 @@ export async function enrollInSection(userId, { section_id: sectionId, academic_
 
   const registeredCount = await countRegisteredInSection(sectionId);
   if (registeredCount >= Number(section.capacity)) {
-    return { ok: false, code: 'section_full' };
+    const waitlistEntry = await findWaitlistEntry(student.id, sectionId);
+    if (waitlistEntry) {
+      return { ok: false, code: 'already_waitlisted' };
+    }
+
+    const createdWaitlist = await createWaitlistEntry({
+      studentId: student.id,
+      sectionId,
+      academicTermId: academicTermId || section.academic_term_id,
+    });
+
+    return {
+      ok: false,
+      code: 'section_full_waitlisted',
+      data: createdWaitlist,
+    };
   }
 
   if (existing && existing.status === 'dropped') {
@@ -87,7 +108,35 @@ export async function dropEnrollment(userId, enrollmentId) {
   }
 
   const dropped = await markEnrollmentDropped(enrollmentId);
+
+  const section = await findSectionById(dropped.section_id);
+  const registeredCount = await countRegisteredInSection(dropped.section_id);
+  if (section && registeredCount < Number(section.capacity)) {
+    const next = await popNextWaitlistEntry(dropped.section_id);
+    if (next) {
+      const existing = await findEnrollmentByStudentAndSection(next.student_id, dropped.section_id);
+      if (!existing) {
+        await createEnrollment({
+          studentId: next.student_id,
+          sectionId: dropped.section_id,
+          academicTermId: next.academic_term_id,
+        });
+      }
+      await normalizeWaitlistPositions(dropped.section_id);
+    }
+  }
+
   return { ok: true, data: dropped };
+}
+
+export async function getStudentWaitlist(userId) {
+  return listWaitlistByUserId(userId);
+}
+
+export async function removeStudentWaitlistEntry(userId, sectionId) {
+  const deleted = await deleteWaitlistByUserAndSection(userId, sectionId);
+  await normalizeWaitlistPositions(sectionId);
+  return deleted;
 }
 
 export default {
@@ -96,4 +145,6 @@ export default {
   getStudentGrades,
   enrollInSection,
   dropEnrollment,
+  getStudentWaitlist,
+  removeStudentWaitlistEntry,
 };

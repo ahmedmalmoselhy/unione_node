@@ -17,3 +17,7 @@ export const studentEnrollSchema = Joi.object({
 export const studentEnrollmentIdParamSchema = Joi.object({
   id: Joi.number().integer().positive().required(),
 });
+
+export const studentWaitlistSectionParamSchema = Joi.object({
+  sectionId: Joi.number().integer().positive().required(),
+});

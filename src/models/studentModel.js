@@ -59,6 +59,91 @@ export async function countRegisteredInSection(sectionId) {
   return Number(row?.count || 0);
 }
 
+export async function getNextWaitlistPosition(sectionId) {
+  const row = await db('enrollment_waitlist')
+    .where({ section_id: sectionId })
+    .max('position as position')
+    .first();
+
+  return Number(row?.position || 0) + 1;
+}
+
+export async function findWaitlistEntry(studentId, sectionId) {
+  return db('enrollment_waitlist').where({ student_id: studentId, section_id: sectionId }).first();
+}
+
+export async function createWaitlistEntry({ studentId, sectionId, academicTermId }) {
+  const position = await getNextWaitlistPosition(sectionId);
+  const [created] = await db('enrollment_waitlist')
+    .insert({
+      student_id: studentId,
+      section_id: sectionId,
+      academic_term_id: academicTermId,
+      position,
+      joined_at: db.fn.now(),
+      created_at: db.fn.now(),
+      updated_at: db.fn.now(),
+    })
+    .returning(['id', 'student_id', 'section_id', 'academic_term_id', 'position', 'joined_at']);
+
+  return created;
+}
+
+export async function listWaitlistByUserId(userId) {
+  return db('enrollment_waitlist as w')
+    .join('students as s', 's.id', 'w.student_id')
+    .join('sections as sec', 'sec.id', 'w.section_id')
+    .join('courses as c', 'c.id', 'sec.course_id')
+    .leftJoin('academic_terms as t', 't.id', 'w.academic_term_id')
+    .where('s.user_id', userId)
+    .select(
+      'w.id',
+      'w.section_id',
+      'w.academic_term_id',
+      'w.position',
+      'w.joined_at',
+      'c.code as course_code',
+      'c.name as course_name',
+      't.name as term_name'
+    )
+    .orderBy('w.joined_at', 'asc');
+}
+
+export async function deleteWaitlistByUserAndSection(userId, sectionId) {
+  return db('enrollment_waitlist as w')
+    .join('students as s', 's.id', 'w.student_id')
+    .where('s.user_id', userId)
+    .andWhere('w.section_id', sectionId)
+    .del();
+}
+
+export async function popNextWaitlistEntry(sectionId) {
+  const next = await db('enrollment_waitlist')
+    .where({ section_id: sectionId })
+    .orderBy('position', 'asc')
+    .first();
+
+  if (!next) {
+    return null;
+  }
+
+  await db('enrollment_waitlist').where({ id: next.id }).del();
+  return next;
+}
+
+export async function normalizeWaitlistPositions(sectionId) {
+  const rows = await db('enrollment_waitlist')
+    .where({ section_id: sectionId })
+    .orderBy('position', 'asc')
+    .select('id');
+
+  for (let i = 0; i < rows.length; i += 1) {
+    await db('enrollment_waitlist')
+      .where({ id: rows[i].id })
+      .update({ position: i + 1, updated_at: db.fn.now() });
+  }
+}
+
 export async function findEnrollmentByStudentAndSection(studentId, sectionId) {
   return db('enrollments').where({ student_id: studentId, section_id: sectionId }).first();
 }
@@ -210,6 +295,13 @@ export default {
   findStudentByUserId,
   findSectionById,
   countRegisteredInSection,
+  getNextWaitlistPosition,
+  findWaitlistEntry,
+  createWaitlistEntry,
+  listWaitlistByUserId,
+  deleteWaitlistByUserAndSection,
+  popNextWaitlistEntry,
+  normalizeWaitlistPositions,
   findEnrollmentByStudentAndSection,
   createEnrollment,
   findEnrollmentByIdAndUserId,

@@ -5,6 +5,8 @@ import {
   getStudentGrades,
   enrollInSection,
   dropEnrollment,
+  getStudentWaitlist,
+  removeStudentWaitlistEntry,
 } from '../services/studentService.js';
 
 export async function profile(req, res, next) {
@@ -50,11 +52,16 @@ export async function enroll(req, res, next) {
         section_not_found: [404, 'Section not found or inactive'],
         already_enrolled: [409, 'Student is already enrolled in this section'],
         missing_prerequisites: [400, 'Missing course prerequisites'],
-        section_full: [409, 'Section capacity is full'],
+        section_full_waitlisted: [202, 'Section is full. Student added to waitlist'],
+        already_waitlisted: [409, 'Student is already waitlisted for this section'],
         already_exists_dropped: [409, 'Enrollment exists as dropped and cannot be recreated automatically'],
       };
 
       const [statusCode, message] = map[result.code] || [400, 'Unable to enroll student'];
+      if (result.code === 'section_full_waitlisted') {
+        return res.status(statusCode).json(success(result.data, message, statusCode));
+      }
+
       return res.status(statusCode).json(errorResponse(message, statusCode));
     }
 
@@ -80,6 +87,30 @@ export async function drop(req, res, next) {
     }
 
     return res.status(200).json(success(result.data, 'Enrollment dropped successfully', 200));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function waitlist(req, res, next) {
+  try {
+    const data = await getStudentWaitlist(req.user.id);
+    return res.status(200).json(success(data, 'Student waitlist fetched successfully', 200));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function removeWaitlist(req, res, next) {
+  try {
+    const sectionId = Number(req.params.sectionId);
+    const deleted = await removeStudentWaitlistEntry(req.user.id, sectionId);
+
+    if (!deleted) {
+      return res.status(404).json(errorResponse('Waitlist entry not found', 404));
+    }
+
+    return res.status(200).json(success({ removed: true }, 'Waitlist entry removed successfully', 200));
   } catch (error) {
     return next(error);
   }

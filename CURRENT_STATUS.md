@@ -62,6 +62,7 @@
 - ✅ Request rate-limiting policies implemented across auth and module routes
 - ✅ Professor write endpoints implemented (grade submission and attendance create/update flows)
 - ✅ Student write actions implemented (enroll/drop with prerequisite and capacity validation)
+- ✅ Student waitlist flows implemented (auto-waitlist on full sections, list/remove waitlist entries, seat promotion trigger on drop)
 
 ### Frontend Planning: ✅ **COMPLETE**
 - ✅ Tech stack selected (React + TypeScript + Vite)
@@ -176,9 +177,9 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 ### For Backend Developer
 1. Expand authorization policy coverage to student/professor/admin route groups
 2. Expand integration coverage to student/professor domain endpoints
-3. Add waitlist flows and automated promotion on seat availability
-4. Build admin notification and announcement management endpoints
-5. Add transcript and schedule export endpoints (PDF/iCal)
+3. Build admin notification and announcement management endpoints
+4. Add transcript and schedule export endpoints (PDF/iCal)
+5. Implement advanced enrollment constraints (term window/deadlines)
 
 ### For Frontend Developer
 1. **Read**: QUICK_REFERENCE.md for fast lookup
