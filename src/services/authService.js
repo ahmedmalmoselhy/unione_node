@@ -1,7 +1,27 @@
 import { comparePassword } from '../utils/password.js';
-import { generateToken } from '../utils/jwt.js';
+import { generateToken, decodeToken } from '../utils/jwt.js';
 import { findActiveByEmail, findActiveById } from '../models/userModel.js';
 import { listActiveRolesByUserId } from '../models/roleModel.js';
+import {
+  createPersonalAccessToken,
+  listTokensByUserId,
+  deleteTokenByRawToken,
+  deleteTokenById,
+  deleteAllTokensByUserId,
+} from '../models/personalAccessTokenModel.js';
+
+function parseAbilities(abilities) {
+  if (!abilities) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(abilities);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
 
 export async function login({ email, password }) {
   const user = await findActiveByEmail(email, true);
@@ -28,6 +48,16 @@ export async function login({ email, password }) {
   };
 
   const token = generateToken(tokenPayload);
+  const decoded = decodeToken(token);
+  const expiresAt = decoded?.exp ? new Date(decoded.exp * 1000) : null;
+
+  await createPersonalAccessToken({
+    userId: user.id,
+    token,
+    name: 'auth-login',
+    abilities: ['*'],
+    expiresAt,
+  });
 
   const profile = {
     id: user.id,
@@ -63,4 +93,25 @@ export async function getUserWithRoles(userId) {
     ...user,
     roles: roleRows,
   };
+}
+
+export async function getTokensForUser(userId) {
+  const rows = await listTokensByUserId(userId);
+
+  return rows.map((row) => ({
+    ...row,
+    abilities: parseAbilities(row.abilities),
+  }));
+}
+
+export async function logoutCurrentToken(rawToken, userId) {
+  return deleteTokenByRawToken(rawToken, userId);
+}
+
+export async function revokeUserTokenById(userId, tokenId) {
+  return deleteTokenById(userId, tokenId);
+}
+
+export async function logoutAllTokens(userId) {
+  return deleteAllTokensByUserId(userId);
 }

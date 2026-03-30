@@ -1,10 +1,12 @@
 import jwt from 'jsonwebtoken';
+import crypto from 'node:crypto';
 
 const secret = process.env.JWT_SECRET || 'your_jwt_secret_key';
 const expiresIn = process.env.JWT_EXPIRE || '7d';
 
 export const generateToken = (payload) => {
-  return jwt.sign(payload, secret, { expiresIn });
+  const jti = payload?.jti || crypto.randomUUID();
+  return jwt.sign({ ...payload, jti }, secret, { expiresIn });
 };
 
 export const verifyToken = (token) => {
