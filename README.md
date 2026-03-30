@@ -12,15 +12,15 @@ A Node.js backend implementation of the UniOne platform, using the same PostgreS
 
 1. Clone the repository and install dependencies:
 
-```bash
-npm install
-```
+    ```bash
+    npm install
+    ```
 
 2. Configure environment variables by creating a `.env` file:
 
-```bash
-cp .env.example .env
-```
+    ```bash
+    cp .env.example .env
+    ```
 
 3. Update `.env` with your database credentials (already configured for unione_db):
 
@@ -37,6 +37,7 @@ DB_PASSWORD=241996
 The project uses **PostgreSQL** as the database, configured to connect to the same database as the Laravel backend (`unione_db`).
 
 Database configuration is managed through:
+
 - `src/config/database.js` - Connection pooling and Knex configuration
 - Environment variables in `.env` file
 
