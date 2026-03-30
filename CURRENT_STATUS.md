@@ -64,6 +64,8 @@
 - ✅ Professor write endpoints implemented (grade submission and attendance create/update flows)
 - ✅ Student write actions implemented (enroll/drop with prerequisite and capacity validation)
 - ✅ Student waitlist flows implemented (auto-waitlist on full sections, list/remove waitlist entries, seat promotion trigger on drop)
+- ✅ Announcement management endpoints implemented (`GET /api/announcements`, `POST /api/announcements`, `PATCH/DELETE /api/announcements/:id`, `POST /api/announcements/:id/read`)
+- ✅ Notification center endpoints implemented (`GET /api/notifications`, `POST /api/notifications/read-all`, `POST /api/notifications/:id/read`, `DELETE /api/notifications/:id`)
 
 ### Frontend Planning: ✅ **COMPLETE**
 - ✅ Tech stack selected (React + TypeScript + Vite)
@@ -95,6 +97,7 @@
 - [x] Implement role-based authorization for initial protected modules
 - [x] Implement initial organizational read endpoints with access control
 - [x] Implement initial organizational write endpoints with role/scope constraints
+- [x] Implement admin announcement and notification management endpoints
 
 **Frontend Tasks**:
 - [ ] Create Vite + React project
@@ -177,10 +180,10 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 
 ### For Backend Developer
 1. Expand authorization policy coverage to student/professor/admin route groups
-2. Build admin notification and announcement management endpoints
-3. Add transcript and schedule export endpoints (PDF/iCal)
-4. Implement advanced enrollment constraints (term window/deadlines)
-5. Add webhook event dispatches on enrollment/grade/attendance changes
+2. Add transcript and schedule export endpoints (PDF/iCal)
+3. Implement advanced enrollment constraints (term window/deadlines)
+4. Add webhook event dispatches on enrollment/grade/attendance changes
+5. Expand integration tests for announcement and notification endpoints
 
 ### For Frontend Developer
 1. **Read**: QUICK_REFERENCE.md for fast lookup
@@ -216,7 +219,7 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 
 **What's NOT Ready** (Current Gaps):
 - Authorization policy coverage across all route groups
-- Feature endpoints beyond auth, organization module, and core student/professor reads
+- Feature endpoints beyond auth, organization, student/professor core + writes, and announcement/notification modules
 - Frontend project scaffold and UI implementation
 - Comprehensive integration and E2E test coverage
 

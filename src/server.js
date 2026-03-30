@@ -10,6 +10,8 @@ import authRoutes from './routes/authRoutes.js';
 import organizationRoutes from './routes/organizationRoutes.js';
 import studentRoutes from './routes/studentRoutes.js';
 import professorRoutes from './routes/professorRoutes.js';
+import announcementRoutes from './routes/announcementRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 
 dotenv.config();
 
@@ -45,6 +47,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/organization', organizationRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/professor', professorRoutes);
+app.use('/api/announcements', announcementRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // 404 handler
 app.use(notFound);
