@@ -59,6 +59,7 @@
 - ✅ Integration tests added for auth and organization authorization flows
 - ✅ Integration tests expanded to student/professor domains (enrollment, waitlist, grades, attendance)
 - ✅ Integration tests expanded to communication modules (announcements and notifications)
+- ✅ Integration tests expanded for export edge cases (empty transcript/schedule term filters)
 - ✅ Student portal core read endpoints implemented (`/api/student/profile`, `/api/student/enrollments`, `/api/student/grades`)
 - ✅ Professor portal core read endpoints implemented (`/api/professor/profile`, `/api/professor/sections`, `/api/professor/schedule`, section students/grades reads)
 - ✅ Request rate-limiting policies implemented across auth and module routes
@@ -187,10 +188,10 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 
 ### For Backend Developer
 1. Expand authorization policy coverage to student/professor/admin route groups
-2. Add integration tests for export endpoint edge cases (empty schedule/transcript)
-3. Begin attendance summary and rating endpoints from the roadmap
-4. Add webhook registration/list management APIs
-5. Add section-specific announcement endpoints for professor/student workflows
+2. Begin attendance summary and rating endpoints from the roadmap
+3. Add webhook registration/list management APIs
+4. Add section-specific announcement endpoints for professor/student workflows
+5. Add professor schedule export endpoint (iCal) for parity
 
 ### For Frontend Developer
 1. **Read**: QUICK_REFERENCE.md for fast lookup

@@ -93,6 +93,35 @@ describe('Student and professor domain integration', () => {
       .expect(403);
   });
 
+  test('student export endpoints handle empty term filters gracefully', async () => {
+    const nonexistentTermId = 99999999;
+
+    const transcriptRes = await request(app)
+      .get(`/api/student/transcript?academic_term_id=${nonexistentTermId}`)
+      .set('Authorization', `Bearer ${studentToken}`)
+      .expect(200);
+
+    expect(Array.isArray(transcriptRes.body.data.transcript.academic_history)).toBe(true);
+    expect(transcriptRes.body.data.transcript.academic_history.length).toBe(0);
+
+    const scheduleRes = await request(app)
+      .get(`/api/student/schedule?academic_term_id=${nonexistentTermId}`)
+      .set('Authorization', `Bearer ${studentToken}`)
+      .expect(200);
+
+    expect(Array.isArray(scheduleRes.body.data)).toBe(true);
+    expect(scheduleRes.body.data.length).toBe(0);
+
+    const icsRes = await request(app)
+      .get(`/api/student/schedule/ics?academic_term_id=${nonexistentTermId}`)
+      .set('Authorization', `Bearer ${studentToken}`)
+      .expect('Content-Type', /text\/calendar/)
+      .expect(200);
+
+    expect(String(icsRes.text)).toContain('BEGIN:VCALENDAR');
+    expect(String(icsRes.text)).not.toContain('BEGIN:VEVENT');
+  });
+
   test('student enroll/drop and waitlist flows work', async () => {
     const student = await db('students as s')
       .join('users as u', 'u.id', 's.user_id')
