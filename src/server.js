@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'node:url';
 import errorHandler from './middleware/errorHandler.js';
 import notFound from './middleware/notFound.js';
 import authRoutes from './routes/authRoutes.js';
@@ -47,15 +48,27 @@ app.use(notFound);
 // Error handler (must be last)
 app.use(errorHandler);
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`
+let server;
+
+export function startServer() {
+  if (!server) {
+    server = app.listen(PORT, () => {
+      console.log(`
     ╔════════════════════════════════════╗
     ║   UniOne Backend - Node.js         ║
     ║   Server running on port ${PORT}      ║
     ║   Environment: ${process.env.NODE_ENV || 'development'}  ║
     ╚════════════════════════════════════╝
   `);
-});
+    });
+  }
+
+  return server;
+}
+
+const currentFilePath = fileURLToPath(import.meta.url);
+if (process.argv[1] && currentFilePath === process.argv[1]) {
+  startServer();
+}
 
 export default app;

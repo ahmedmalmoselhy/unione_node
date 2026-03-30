@@ -10,8 +10,8 @@
     "seed:run": "node src/scripts/run-seeders.js",
     "seed:run:fresh": "node src/scripts/seed-fresh.js",
     "seed:verify": "node src/scripts/verify-seed-parity.js",
-    "test": "jest",
-    "test:watch": "jest --watch",
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --watch",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix"
   },
