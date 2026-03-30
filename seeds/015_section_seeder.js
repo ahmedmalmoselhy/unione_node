@@ -33,11 +33,24 @@ export async function seed(knex) {
     profsByDept[p.department_id].push(p.id);
   }
 
+  const profsByFaculty = {};
+  const profFacultyRows = await knex('professors')
+    .join('departments', 'departments.id', '=', 'professors.department_id')
+    .whereNotNull('departments.faculty_id')
+    .select('professors.id as professor_id', 'departments.faculty_id');
+
+  for (const row of profFacultyRows) {
+    if (!profsByFaculty[row.faculty_id]) profsByFaculty[row.faculty_id] = [];
+    profsByFaculty[row.faculty_id].push(row.professor_id);
+  }
+
   let slotIdx = 0;
   let roomIdx = 0;
 
   for (const link of ownerLinks) {
-    const pool = profsByDept[link.owner_dept_id] || [];
+    const pool =
+      profsByDept[link.owner_dept_id] ||
+      (link.faculty_id ? profsByFaculty[link.faculty_id] || [] : []);
     if (!pool.length) continue;
 
     for (const term of terms) {

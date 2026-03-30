@@ -99,23 +99,26 @@ export async function seed(knex) {
 
   for (const c of courses) {
     let course = await knex('courses').where({ code: c.code }).first('id');
+    const coursePayload = {
+      code: c.code,
+      name: c.name,
+      name_ar: c.name_ar,
+      credit_hours: c.credit_hours,
+      lecture_hours: c.lecture_hours,
+      lab_hours: c.lab_hours,
+      level: c.level,
+      is_elective: c.is_elective,
+      is_active: true,
+      updated_at: now,
+    };
+
     if (!course) {
       const [inserted] = await knex('courses')
-        .insert({
-          code: c.code,
-          name: c.name,
-          name_ar: c.name_ar,
-          credit_hours: c.credit_hours,
-          lecture_hours: c.lecture_hours,
-          lab_hours: c.lab_hours,
-          level: c.level,
-          is_elective: c.is_elective,
-          is_active: true,
-          created_at: now,
-          updated_at: now,
-        })
+        .insert({ ...coursePayload, created_at: now })
         .returning('id');
       course = inserted;
+    } else {
+      await knex('courses').where({ id: course.id }).update(coursePayload);
     }
 
     if (depts[c.owner]) {
