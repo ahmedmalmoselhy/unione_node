@@ -8,6 +8,8 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "seed:run": "node src/scripts/run-seeders.js",
+    "seed:run:fresh": "node src/scripts/seed-fresh.js",
+    "seed:verify": "node src/scripts/verify-seed-parity.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "eslint src/",
