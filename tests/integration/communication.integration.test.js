@@ -9,17 +9,24 @@ describe('Announcements and notifications integration', () => {
   let studentToken;
   let studentUserId;
   let canRun = true;
+  let canRunWebhooks = true;
 
   beforeAll(async () => {
-    const [hasAnnouncements, hasAnnouncementReads, hasNotifications] = await Promise.all([
+    const [hasAnnouncements, hasAnnouncementReads, hasNotifications, hasWebhooks, hasWebhookDeliveries] = await Promise.all([
       db.schema.hasTable('announcements'),
       db.schema.hasTable('announcement_reads'),
       db.schema.hasTable('notifications'),
+      db.schema.hasTable('webhooks'),
+      db.schema.hasTable('webhook_deliveries'),
     ]);
 
     if (!hasAnnouncements || !hasAnnouncementReads || !hasNotifications) {
       canRun = false;
       return;
+    }
+
+    if (!hasWebhooks || !hasWebhookDeliveries) {
+      canRunWebhooks = false;
     }
 
     const admin = await db('users as u')
@@ -145,6 +152,43 @@ describe('Announcements and notifications integration', () => {
 
     await request(app)
       .delete(`/api/notifications/${notificationTwo.id}`)
+      .set('Authorization', `Bearer ${studentToken}`)
+      .expect(200);
+  });
+
+  test('webhook management endpoints allow user-scoped CRUD', async () => {
+    if (!canRun || !canRunWebhooks) {
+      return;
+    }
+
+    const createRes = await request(app)
+      .post('/api/webhooks')
+      .set('Authorization', `Bearer ${studentToken}`)
+      .send({
+        url: 'https://example.com/unione-webhook',
+        events: ['enrollment.created', 'grades.submitted'],
+      })
+      .expect(201);
+
+    const webhookId = createRes.body.data.id;
+    expect(createRes.body.data.secret).toBeTruthy();
+
+    const listRes = await request(app)
+      .get('/api/webhooks')
+      .set('Authorization', `Bearer ${studentToken}`)
+      .expect(200);
+
+    expect(Array.isArray(listRes.body.data.items)).toBe(true);
+    expect(listRes.body.data.items.some((item) => item.id === webhookId)).toBe(true);
+
+    await request(app)
+      .patch(`/api/webhooks/${webhookId}`)
+      .set('Authorization', `Bearer ${studentToken}`)
+      .send({ is_active: false })
+      .expect(200);
+
+    await request(app)
+      .delete(`/api/webhooks/${webhookId}`)
       .set('Authorization', `Bearer ${studentToken}`)
       .expect(200);
   });

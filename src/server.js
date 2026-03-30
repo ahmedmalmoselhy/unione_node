@@ -12,6 +12,7 @@ import studentRoutes from './routes/studentRoutes.js';
 import professorRoutes from './routes/professorRoutes.js';
 import announcementRoutes from './routes/announcementRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import webhookRoutes from './routes/webhookRoutes.js';
 
 dotenv.config();
 
@@ -49,6 +50,7 @@ app.use('/api/student', studentRoutes);
 app.use('/api/professor', professorRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/webhooks', webhookRoutes);
 
 // 404 handler
 app.use(notFound);

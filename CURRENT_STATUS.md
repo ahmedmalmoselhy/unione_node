@@ -71,6 +71,7 @@
 - ✅ Student export endpoints implemented (`GET /api/student/transcript`, `GET /api/student/transcript/pdf`, `GET /api/student/schedule`, `GET /api/student/schedule/ics`)
 - ✅ Advanced enrollment constraints implemented (term registration window checks and withdrawal deadline enforcement)
 - ✅ Webhook dispatch pipeline implemented for enrollment/grade/attendance events with delivery logging and failure tracking
+- ✅ Webhook management APIs implemented (`GET/POST/PATCH/DELETE /api/webhooks`)
 
 ### Frontend Planning: ✅ **COMPLETE**
 - ✅ Tech stack selected (React + TypeScript + Vite)
@@ -189,9 +190,9 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 ### For Backend Developer
 1. Expand authorization policy coverage to student/professor/admin route groups
 2. Begin attendance summary and rating endpoints from the roadmap
-3. Add webhook registration/list management APIs
-4. Add section-specific announcement endpoints for professor/student workflows
-5. Add professor schedule export endpoint (iCal) for parity
+3. Add section-specific announcement endpoints for professor/student workflows
+4. Add professor schedule export endpoint (iCal) for parity
+5. Add notification preference controls (per event type)
 
 ### For Frontend Developer
 1. **Read**: QUICK_REFERENCE.md for fast lookup
