@@ -57,6 +57,7 @@
 - ✅ Organization write endpoints implemented (`PATCH /api/organization/university`, `POST/PATCH faculties`, `POST/PATCH departments`)
 - ✅ ESLint configured and lint script operational
 - ✅ Integration tests added for auth and organization authorization flows
+- ✅ Integration tests expanded to student/professor domains (enrollment, waitlist, grades, attendance)
 - ✅ Student portal core read endpoints implemented (`/api/student/profile`, `/api/student/enrollments`, `/api/student/grades`)
 - ✅ Professor portal core read endpoints implemented (`/api/professor/profile`, `/api/professor/sections`, `/api/professor/schedule`, section students/grades reads)
 - ✅ Request rate-limiting policies implemented across auth and module routes
@@ -176,10 +177,10 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 
 ### For Backend Developer
 1. Expand authorization policy coverage to student/professor/admin route groups
-2. Expand integration coverage to student/professor domain endpoints
-3. Build admin notification and announcement management endpoints
-4. Add transcript and schedule export endpoints (PDF/iCal)
-5. Implement advanced enrollment constraints (term window/deadlines)
+2. Build admin notification and announcement management endpoints
+3. Add transcript and schedule export endpoints (PDF/iCal)
+4. Implement advanced enrollment constraints (term window/deadlines)
+5. Add webhook event dispatches on enrollment/grade/attendance changes
 
 ### For Frontend Developer
 1. **Read**: QUICK_REFERENCE.md for fast lookup
