@@ -58,6 +58,7 @@
 - ✅ ESLint configured and lint script operational
 - ✅ Integration tests added for auth and organization authorization flows
 - ✅ Integration tests expanded to student/professor domains (enrollment, waitlist, grades, attendance)
+- ✅ Integration tests expanded to communication modules (announcements and notifications)
 - ✅ Student portal core read endpoints implemented (`/api/student/profile`, `/api/student/enrollments`, `/api/student/grades`)
 - ✅ Professor portal core read endpoints implemented (`/api/professor/profile`, `/api/professor/sections`, `/api/professor/schedule`, section students/grades reads)
 - ✅ Request rate-limiting policies implemented across auth and module routes
@@ -186,10 +187,10 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 
 ### For Backend Developer
 1. Expand authorization policy coverage to student/professor/admin route groups
-2. Expand integration tests for announcement and notification endpoints
-3. Add integration tests for export endpoint edge cases (empty schedule/transcript)
-4. Begin attendance summary and rating endpoints from the roadmap
-5. Add webhook registration/list management APIs
+2. Add integration tests for export endpoint edge cases (empty schedule/transcript)
+3. Begin attendance summary and rating endpoints from the roadmap
+4. Add webhook registration/list management APIs
+5. Add section-specific announcement endpoints for professor/student workflows
 
 ### For Frontend Developer
 1. **Read**: QUICK_REFERENCE.md for fast lookup
