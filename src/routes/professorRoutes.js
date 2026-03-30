@@ -13,9 +13,11 @@ import {
   professorSectionsQuerySchema,
   professorSectionIdParamSchema,
 } from '../validators/professorValidators.js';
+import { apiLimiter } from '../middleware/rateLimiters.js';
 
 const router = express.Router();
 
+router.use(apiLimiter);
 router.use(authenticate, authorizeAny('professor'));
 
 router.get('/profile', profile);

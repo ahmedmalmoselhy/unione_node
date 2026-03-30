@@ -22,6 +22,7 @@ import {
   createDepartmentSchema,
   updateDepartmentSchema,
 } from '../validators/organizationValidators.js';
+import { apiLimiter, writeLimiter } from '../middleware/rateLimiters.js';
 
 const router = express.Router();
 
@@ -29,17 +30,18 @@ const elevatedRoles = ['admin', 'university_admin', 'faculty_admin', 'department
 const highRoles = ['admin', 'university_admin'];
 const departmentWriteRoles = ['admin', 'university_admin', 'faculty_admin'];
 
+router.use(apiLimiter);
 router.use(authenticate, authorizeAny(...elevatedRoles));
 
 router.get('/university', university);
-router.patch('/university', authorizeAny(...highRoles), validate(updateUniversitySchema), updateUniversity);
+router.patch('/university', writeLimiter, authorizeAny(...highRoles), validate(updateUniversitySchema), updateUniversity);
 
 router.get('/faculties', validate(facultyListSchema, 'query'), faculties);
-router.post('/faculties', authorizeAny(...highRoles), validate(createFacultySchema), createFaculty);
-router.patch('/faculties/:id', authorizeAny(...highRoles), validate(entityIdParamSchema, 'params'), validate(updateFacultySchema), updateFaculty);
+router.post('/faculties', writeLimiter, authorizeAny(...highRoles), validate(createFacultySchema), createFaculty);
+router.patch('/faculties/:id', writeLimiter, authorizeAny(...highRoles), validate(entityIdParamSchema, 'params'), validate(updateFacultySchema), updateFaculty);
 
 router.get('/departments', validate(departmentListSchema, 'query'), departments);
-router.post('/departments', authorizeAny(...departmentWriteRoles), validate(createDepartmentSchema), createDepartment);
-router.patch('/departments/:id', authorizeAny(...departmentWriteRoles), validate(entityIdParamSchema, 'params'), validate(updateDepartmentSchema), updateDepartment);
+router.post('/departments', writeLimiter, authorizeAny(...departmentWriteRoles), validate(createDepartmentSchema), createDepartment);
+router.patch('/departments/:id', writeLimiter, authorizeAny(...departmentWriteRoles), validate(entityIdParamSchema, 'params'), validate(updateDepartmentSchema), updateDepartment);
 
 export default router;

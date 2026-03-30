@@ -59,6 +59,7 @@
 - ✅ Integration tests added for auth and organization authorization flows
 - ✅ Student portal core read endpoints implemented (`/api/student/profile`, `/api/student/enrollments`, `/api/student/grades`)
 - ✅ Professor portal core read endpoints implemented (`/api/professor/profile`, `/api/professor/sections`, `/api/professor/schedule`, section students/grades reads)
+- ✅ Request rate-limiting policies implemented across auth and module routes
 
 ### Frontend Planning: ✅ **COMPLETE**
 - ✅ Tech stack selected (React + TypeScript + Vite)
@@ -173,9 +174,9 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 ### For Backend Developer
 1. Expand authorization policy coverage to student/professor/admin route groups
 2. Add professor write endpoints (attendance sessions and grade submission)
-3. Add request rate-limiting policies per sensitive endpoint group
-4. Expand integration coverage to student/professor domain endpoints
-5. Implement student write actions (enroll/drop) with prerequisite and capacity checks
+3. Expand integration coverage to student/professor domain endpoints
+4. Implement student write actions (enroll/drop) with prerequisite and capacity checks
+5. Add waitlist flows and course prerequisite enforcement APIs
 
 ### For Frontend Developer
 1. **Read**: QUICK_REFERENCE.md for fast lookup

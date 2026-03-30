@@ -7,9 +7,11 @@ import {
   studentEnrollmentsQuerySchema,
   studentGradesQuerySchema,
 } from '../validators/studentValidators.js';
+import { apiLimiter } from '../middleware/rateLimiters.js';
 
 const router = express.Router();
 
+router.use(apiLimiter);
 router.use(authenticate, authorizeAny('student'));
 
 router.get('/profile', profile);
