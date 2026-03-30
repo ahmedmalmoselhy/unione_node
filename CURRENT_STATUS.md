@@ -75,6 +75,7 @@
 - ✅ Advanced enrollment constraints implemented (term registration window checks and withdrawal deadline enforcement)
 - ✅ Webhook dispatch pipeline implemented for enrollment/grade/attendance events with delivery logging and failure tracking
 - ✅ Webhook management APIs implemented (`GET/POST/PATCH/DELETE /api/webhooks`)
+- ✅ Notification preference controls implemented (`GET/PUT /api/notifications/preferences`)
 
 ### Frontend Planning: ✅ **COMPLETE**
 - ✅ Tech stack selected (React + TypeScript + Vite)
@@ -192,10 +193,10 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 
 ### For Backend Developer
 1. Expand authorization policy coverage to student/professor/admin route groups
-2. Add notification preference controls (per event type)
-3. Expand webhook retry/backoff and idempotency controls
-4. Add admin analytics endpoints for ratings and attendance summaries
-5. Add attendance summary endpoint grouped by section/course
+2. Expand webhook retry/backoff and idempotency controls
+3. Add admin analytics endpoints for ratings and attendance summaries
+4. Add attendance summary endpoint grouped by section/course
+5. Add per-user mute windows (quiet hours) for notifications
 
 ### For Frontend Developer
 1. **Read**: QUICK_REFERENCE.md for fast lookup

@@ -156,6 +156,46 @@ describe('Announcements and notifications integration', () => {
       .expect(200);
   });
 
+  test('notification preferences endpoints read and update per event type', async () => {
+    const hasPreferencesTable = await db.schema.hasTable('notification_preferences');
+
+    if (!hasPreferencesTable) {
+      await db.schema.createTable('notification_preferences', (table) => {
+        table.bigIncrements('id').primary();
+        table.bigInteger('user_id').unsigned().notNullable();
+        table.string('event_type', 100).notNullable();
+        table.boolean('is_enabled').notNullable().defaultTo(true);
+        table.timestamps(true, true);
+
+        table.unique(['user_id', 'event_type']);
+        table.foreign('user_id').references('id').inTable('users').onDelete('CASCADE');
+      });
+    }
+
+    const listRes = await request(app)
+      .get('/api/notifications/preferences')
+      .set('Authorization', `Bearer ${studentToken}`)
+      .expect(200);
+
+    expect(Array.isArray(listRes.body.data.items)).toBe(true);
+    expect(listRes.body.data.items.length).toBeGreaterThan(0);
+
+    const updateRes = await request(app)
+      .put('/api/notifications/preferences')
+      .set('Authorization', `Bearer ${studentToken}`)
+      .send({
+        preferences: [
+          { event_type: 'announcement.new', is_enabled: false },
+          { event_type: 'grades.submitted', is_enabled: true },
+        ],
+      })
+      .expect(200);
+
+    const updatedAnnouncement = updateRes.body.data.items.find((item) => item.event_type === 'announcement.new');
+    expect(updatedAnnouncement).toBeTruthy();
+    expect(updatedAnnouncement.is_enabled).toBe(false);
+  });
+
   test('webhook management endpoints allow user-scoped CRUD', async () => {
     if (!canRun || !canRunWebhooks) {
       return;

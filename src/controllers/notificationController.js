@@ -37,9 +37,29 @@ export async function deleteNotification(req, res, next) {
   }
 }
 
+export async function listNotificationPreferences(req, res, next) {
+  try {
+    const result = await notificationService.listMyNotificationPreferences(req.user);
+    return res.status(200).json(success(result, 'Notification preferences fetched successfully', 200));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function updateNotificationPreferences(req, res, next) {
+  try {
+    const result = await notificationService.updateMyNotificationPreferences(req.user, req.body.preferences);
+    return res.status(200).json(success(result, 'Notification preferences updated successfully', 200));
+  } catch (error) {
+    return next(error);
+  }
+}
+
 export default {
   listNotifications,
   markNotificationRead,
   markAllNotificationsRead,
   deleteNotification,
+  listNotificationPreferences,
+  updateNotificationPreferences,
 };
