@@ -31,6 +31,100 @@ export async function findStudentProfileByUserId(userId) {
     .first();
 }
 
+export async function findStudentByUserId(userId) {
+  return db('students').where({ user_id: userId }).first();
+}
+
+export async function findSectionById(sectionId) {
+  return db('sections as s')
+    .leftJoin('academic_terms as t', 't.id', 's.academic_term_id')
+    .select(
+      's.id',
+      's.course_id',
+      's.capacity',
+      's.academic_term_id',
+      's.is_active',
+      't.is_active as term_is_active'
+    )
+    .where('s.id', sectionId)
+    .first();
+}
+
+export async function countRegisteredInSection(sectionId) {
+  const row = await db('enrollments')
+    .where({ section_id: sectionId, status: 'registered' })
+    .count('* as count')
+    .first();
+
+  return Number(row?.count || 0);
+}
+
+export async function findEnrollmentByStudentAndSection(studentId, sectionId) {
+  return db('enrollments').where({ student_id: studentId, section_id: sectionId }).first();
+}
+
+export async function createEnrollment({ studentId, sectionId, academicTermId }) {
+  const [created] = await db('enrollments')
+    .insert({
+      student_id: studentId,
+      section_id: sectionId,
+      academic_term_id: academicTermId || null,
+      status: 'registered',
+      registered_at: db.fn.now(),
+      created_at: db.fn.now(),
+      updated_at: db.fn.now(),
+    })
+    .returning(['id', 'student_id', 'section_id', 'academic_term_id', 'status', 'registered_at']);
+
+  return created;
+}
+
+export async function findEnrollmentByIdAndUserId(enrollmentId, userId) {
+  return db('enrollments as e')
+    .join('students as s', 's.id', 'e.student_id')
+    .where('e.id', enrollmentId)
+    .andWhere('s.user_id', userId)
+    .select('e.*', 's.id as student_id')
+    .first();
+}
+
+export async function markEnrollmentDropped(enrollmentId) {
+  const [updated] = await db('enrollments')
+    .where({ id: enrollmentId })
+    .update({
+      status: 'dropped',
+      dropped_at: db.fn.now(),
+      updated_at: db.fn.now(),
+    })
+    .returning(['id', 'student_id', 'section_id', 'academic_term_id', 'status', 'registered_at', 'dropped_at']);
+
+  return updated;
+}
+
+export async function listPrerequisiteCourseIds(courseId) {
+  const rows = await db('course_prerequisites').where({ course_id: courseId }).select('prerequisite_id');
+  return rows.map((row) => Number(row.prerequisite_id));
+}
+
+export async function countPassedPrerequisites(studentId, prerequisiteCourseIds) {
+  if (!prerequisiteCourseIds.length) {
+    return 0;
+  }
+
+  const rows = await db('enrollments as e')
+    .join('sections as s', 's.id', 'e.section_id')
+    .leftJoin('grades as g', 'g.enrollment_id', 'e.id')
+    .where('e.student_id', studentId)
+    .whereIn('s.course_id', prerequisiteCourseIds)
+    .andWhere((query) => {
+      query.whereIn('e.status', ['completed', 'registered']).orWhere('g.total', '>=', 60);
+    })
+    .select('s.course_id')
+    .groupBy('s.course_id');
+
+  return rows.length;
+}
+
 export async function listStudentEnrollmentsByUserId(userId, { status, academicTermId } = {}) {
   const query = db('enrollments as e')
     .join('students as s', 's.id', 'e.student_id')
@@ -113,6 +207,15 @@ export async function listStudentGradesByUserId(userId, { academicTermId } = {})
 
 export default {
   findStudentProfileByUserId,
+  findStudentByUserId,
+  findSectionById,
+  countRegisteredInSection,
+  findEnrollmentByStudentAndSection,
+  createEnrollment,
+  findEnrollmentByIdAndUserId,
+  markEnrollmentDropped,
+  listPrerequisiteCourseIds,
+  countPassedPrerequisites,
   listStudentEnrollmentsByUserId,
   listStudentGradesByUserId,
 };
