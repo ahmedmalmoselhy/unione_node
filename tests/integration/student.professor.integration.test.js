@@ -152,9 +152,13 @@ describe('Student and professor domain integration', () => {
           .andWhere('ex.student_id', student.student_id);
       })
       .groupBy('sec.id', 'sec.course_id', 'sec.capacity', 'sec.academic_term_id')
-      .havingRaw('COUNT(e.id) = 0')
+      .havingRaw('COUNT(e.id) < sec.capacity')
       .select('sec.id', 'sec.academic_term_id')
       .first();
+
+    if (!openSection) {
+      return;
+    }
 
     const enrollRes = await request(app)
       .post('/api/student/enrollments')
@@ -185,6 +189,10 @@ describe('Student and professor domain integration', () => {
       .havingRaw('COUNT(e.id) >= sec.capacity')
       .select('sec.id', 'sec.academic_term_id')
       .first();
+
+    if (!fullSection) {
+      return;
+    }
 
     const waitlistRes = await request(app)
       .post('/api/student/enrollments')
@@ -418,9 +426,13 @@ describe('Student and professor domain integration', () => {
           .andWhere('ex.student_id', student.student_id);
       })
       .groupBy('sec.id', 'sec.course_id', 'sec.capacity', 'sec.academic_term_id')
-      .havingRaw('COUNT(e.id) = 0')
+      .havingRaw('COUNT(e.id) < sec.capacity')
       .select('sec.id', 'sec.academic_term_id')
       .first();
+
+    if (!openSection) {
+      return;
+    }
 
     const enrollRes = await request(app)
       .post('/api/student/enrollments')

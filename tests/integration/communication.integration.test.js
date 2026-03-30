@@ -248,4 +248,17 @@ describe('Announcements and notifications integration', () => {
 
     expect(Array.isArray(attendanceRes.body.data)).toBe(true);
   });
+
+  test('admin failed webhook deliveries endpoint returns failed delivery list', async () => {
+    if (!canRun || !canRunWebhooks) {
+      return;
+    }
+
+    const res = await request(app)
+      .get('/api/admin/webhooks/failed?limit=25')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200);
+
+    expect(Array.isArray(res.body.data)).toBe(true);
+  });
 });
