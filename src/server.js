@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import errorHandler from './middleware/errorHandler.js';
 import notFound from './middleware/notFound.js';
+import authRoutes from './routes/authRoutes.js';
 
 dotenv.config();
 
@@ -35,6 +36,8 @@ app.get('/api', (req, res) => {
     documentation: '/api/docs',
   });
 });
+
+app.use('/api/auth', authRoutes);
 
 // 404 handler
 app.use(notFound);
