@@ -6,6 +6,10 @@ import {
   logoutCurrentToken,
   revokeUserTokenById,
   logoutAllTokens,
+  requestPasswordReset,
+  resetPassword as resetPasswordService,
+  changePassword as changePasswordService,
+  updateProfile as updateProfileService,
 } from '../services/authService.js';
 
 export async function login(req, res, next) {
@@ -90,6 +94,82 @@ export async function revokeToken(req, res, next) {
     }
 
     return res.status(200).json(success({ revoked: true }, 'Token revoked successfully', 200));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function forgotPassword(req, res, next) {
+  try {
+    const result = await requestPasswordReset(req.body.email);
+
+    return res.status(200).json(
+      success(
+        result,
+        'If your email exists in our records, a reset link has been generated.',
+        200
+      )
+    );
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function resetPassword(req, res, next) {
+  try {
+    const result = await resetPasswordService(req.body);
+
+    if (!result.ok) {
+      const message = result.reason === 'expired'
+        ? 'Reset token expired'
+        : 'Invalid reset token or email';
+
+      return res.status(400).json(errorResponse(message, 400));
+    }
+
+    return res
+      .status(200)
+      .json(success({ reset: true }, 'Password reset successful', 200));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function changePassword(req, res, next) {
+  try {
+    const { current_password: currentPassword, password: newPassword } = req.body;
+    const result = await changePasswordService(req.user.id, currentPassword, newPassword);
+
+    if (!result.ok) {
+      const statusCode = result.reason === 'not_found' ? 404 : 400;
+      const message = result.reason === 'not_found'
+        ? 'User not found'
+        : 'Current password is incorrect';
+
+      return res.status(statusCode).json(errorResponse(message, statusCode));
+    }
+
+    return res.status(200).json(
+      success(
+        { changed: true, sessions_revoked: true },
+        'Password changed successfully. Please log in again.',
+        200
+      )
+    );
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function updateProfile(req, res, next) {
+  try {
+    const updated = await updateProfileService(req.user.id, req.body);
+
+    if (!updated) {
+      return res.status(404).json(errorResponse('User not found', 404));
+    }
+
+    return res.status(200).json(success(updated, 'Profile updated successfully', 200));
   } catch (error) {
     return next(error);
   }

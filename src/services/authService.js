@@ -1,6 +1,14 @@
 import { comparePassword } from '../utils/password.js';
 import { generateToken, decodeToken } from '../utils/jwt.js';
-import { findActiveByEmail, findActiveById } from '../models/userModel.js';
+import crypto from 'node:crypto';
+import { hashPassword } from '../utils/password.js';
+import { hashAccessToken } from '../utils/token.js';
+import {
+  findActiveByEmail,
+  findActiveById,
+  updateUserPassword,
+  updateUserProfile,
+} from '../models/userModel.js';
 import { listActiveRolesByUserId } from '../models/roleModel.js';
 import {
   createPersonalAccessToken,
@@ -9,6 +17,11 @@ import {
   deleteTokenById,
   deleteAllTokensByUserId,
 } from '../models/personalAccessTokenModel.js';
+import {
+  findPasswordResetTokenByEmail,
+  upsertPasswordResetToken,
+  deletePasswordResetTokenByEmail,
+} from '../models/passwordResetTokenModel.js';
 
 function parseAbilities(abilities) {
   if (!abilities) {
@@ -114,4 +127,79 @@ export async function revokeUserTokenById(userId, tokenId) {
 
 export async function logoutAllTokens(userId) {
   return deleteAllTokensByUserId(userId);
+}
+
+export async function requestPasswordReset(email) {
+  const user = await findActiveByEmail(email, false);
+  if (!user) {
+    return { requested: true };
+  }
+
+  const rawToken = crypto.randomBytes(32).toString('hex');
+  const tokenHash = hashAccessToken(rawToken);
+  const expiresMinutes = Number(process.env.PASSWORD_RESET_EXPIRE_MINUTES || 60);
+  const expiresAt = new Date(Date.now() + expiresMinutes * 60 * 1000);
+
+  await upsertPasswordResetToken({
+    email: user.email,
+    tokenHash,
+    expiresAt,
+  });
+
+  return {
+    requested: true,
+    ...(process.env.NODE_ENV !== 'production' && { reset_token: rawToken }),
+  };
+}
+
+export async function resetPassword({ email, token, password }) {
+  const user = await findActiveByEmail(email, true);
+  if (!user) {
+    return { ok: false, reason: 'invalid' };
+  }
+
+  const resetEntry = await findPasswordResetTokenByEmail(email);
+  if (!resetEntry) {
+    return { ok: false, reason: 'invalid' };
+  }
+
+  if (resetEntry.expires_at && new Date(resetEntry.expires_at) <= new Date()) {
+    await deletePasswordResetTokenByEmail(email);
+    return { ok: false, reason: 'expired' };
+  }
+
+  const tokenHash = hashAccessToken(token);
+  if (tokenHash !== resetEntry.token) {
+    return { ok: false, reason: 'invalid' };
+  }
+
+  const passwordHash = await hashPassword(password);
+  await updateUserPassword(user.id, passwordHash, false);
+  await deletePasswordResetTokenByEmail(email);
+  await deleteAllTokensByUserId(user.id);
+
+  return { ok: true };
+}
+
+export async function changePassword(userId, currentPassword, newPassword) {
+  const user = await findActiveById(userId, true);
+  if (!user) {
+    return { ok: false, reason: 'not_found' };
+  }
+
+  const matches = await comparePassword(currentPassword, user.password);
+  if (!matches) {
+    return { ok: false, reason: 'invalid_current_password' };
+  }
+
+  const passwordHash = await hashPassword(newPassword);
+  await updateUserPassword(userId, passwordHash, false);
+  await deleteAllTokensByUserId(userId);
+
+  return { ok: true };
+}
+
+export async function updateProfile(userId, profilePatch) {
+  const updated = await updateUserProfile(userId, profilePatch);
+  return updated || null;
 }

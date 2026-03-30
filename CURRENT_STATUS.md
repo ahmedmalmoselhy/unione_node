@@ -49,6 +49,7 @@
 - ✅ Laravel-matching seeders created and verified
 - ✅ Authentication endpoints implemented (`/api/auth/login`, `/api/auth/logout`, `/api/auth/me`)
 - ✅ Auth token lifecycle endpoints implemented (`/api/auth/tokens`, `DELETE /api/auth/tokens`, `DELETE /api/auth/tokens/:tokenId`)
+- ✅ Auth account-management endpoints implemented (`/api/auth/forgot-password`, `/api/auth/reset-password`, `/api/auth/change-password`, `/api/auth/profile`)
 - ✅ Auth middleware implemented for protected routes
 - ✅ Role-based authorization middleware implemented (`authorizeAny`)
 - ✅ Initial core model layer implemented (User, Role, University, Faculty, Department)
@@ -79,7 +80,7 @@
 **Backend Tasks**:
 - [x] Create database migrations
 - [x] Implement initial core models (User, Role, University, Faculty, Department)
-- [ ] Build full authentication system (login/logout/me + token lifecycle done, password/profile flows pending)
+- [x] Build full authentication system (login/logout/me, token lifecycle, password/profile flows)
 - [x] Create auth middleware and protected auth route handling
 - [x] Implement role-based authorization for initial protected modules
 - [x] Implement initial organizational read endpoints with access control
@@ -164,11 +165,11 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 ## 🎯 Next Immediate Steps
 
 ### For Backend Developer
-1. Complete remaining auth endpoints (change password, forgot/reset password, profile update)
-2. Expand authorization policy coverage to additional route groups
-3. Add write endpoints for organizational management (create/update/deactivate)
-4. Add ESLint configuration so `npm run lint` becomes operational
-5. Add integration tests for auth and authorization flows
+1. Expand authorization policy coverage to additional route groups
+2. Add write endpoints for organizational management (create/update/deactivate)
+3. Add ESLint configuration so `npm run lint` becomes operational
+4. Add integration tests for auth and authorization flows
+5. Start student portal endpoints (profile/enrollments/grades)
 
 ### For Frontend Developer
 1. **Read**: QUICK_REFERENCE.md for fast lookup
@@ -203,7 +204,6 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 - ✅ Documentation
 
 **What's NOT Ready** (Current Gaps):
-- Full auth module completion (password reset/change and profile update pending)
 - Authorization policy coverage across all route groups
 - Feature endpoints beyond auth, organization reads, and seed tooling
 - Frontend project scaffold and UI implementation

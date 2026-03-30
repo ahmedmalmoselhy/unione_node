@@ -41,8 +41,36 @@ export async function findActiveById(id, includePassword = false) {
     .first();
 }
 
+export async function updateUserPassword(userId, passwordHash, mustChangePassword = false) {
+  return db('users')
+    .where({ id: userId })
+    .whereNull('deleted_at')
+    .update({
+      password: passwordHash,
+      must_change_password: mustChangePassword,
+      updated_at: db.fn.now(),
+    });
+}
+
+export async function updateUserProfile(userId, profilePatch) {
+  const payload = {
+    ...profilePatch,
+    updated_at: db.fn.now(),
+  };
+
+  const [updated] = await db('users')
+    .where({ id: userId })
+    .whereNull('deleted_at')
+    .update(payload)
+    .returning(getUserColumns(false));
+
+  return updated;
+}
+
 export default {
   getUserColumns,
   findActiveByEmail,
   findActiveById,
+  updateUserPassword,
+  updateUserProfile,
 };
