@@ -2,9 +2,32 @@ import {
   findProfessorProfileByUserId,
   listProfessorSectionsByUserId,
   findProfessorSectionById,
+  listSectionEnrollmentIds,
   listProfessorSectionStudents,
   listProfessorSectionGrades,
+  upsertSectionGrades,
+  createAttendanceSession,
+  listProfessorAttendanceSessions,
+  findProfessorAttendanceSession,
+  upsertAttendanceRecords,
+  listAttendanceRecordsBySession,
 } from '../models/professorModel.js';
+
+function computeGrade(total) {
+  if (total >= 97) return { letter_grade: 'A+', grade_points: 4.0 };
+  if (total >= 93) return { letter_grade: 'A', grade_points: 4.0 };
+  if (total >= 90) return { letter_grade: 'A-', grade_points: 3.7 };
+  if (total >= 87) return { letter_grade: 'B+', grade_points: 3.3 };
+  if (total >= 83) return { letter_grade: 'B', grade_points: 3.0 };
+  if (total >= 80) return { letter_grade: 'B-', grade_points: 2.7 };
+  if (total >= 77) return { letter_grade: 'C+', grade_points: 2.3 };
+  if (total >= 73) return { letter_grade: 'C', grade_points: 2.0 };
+  if (total >= 70) return { letter_grade: 'C-', grade_points: 1.7 };
+  if (total >= 67) return { letter_grade: 'D+', grade_points: 1.3 };
+  if (total >= 63) return { letter_grade: 'D', grade_points: 1.0 };
+  if (total >= 60) return { letter_grade: 'D-', grade_points: 0.7 };
+  return { letter_grade: 'F', grade_points: 0.0 };
+}
 
 export async function getProfessorProfile(userId) {
   return findProfessorProfileByUserId(userId);
@@ -36,10 +59,101 @@ export async function getProfessorSectionGrades(userId, sectionId) {
   return listProfessorSectionGrades(userId, sectionId);
 }
 
+export async function submitProfessorSectionGrades(userId, sectionId, grades) {
+  const section = await findProfessorSectionById(userId, sectionId);
+  if (!section) {
+    return null;
+  }
+
+  const enrollmentMap = await listSectionEnrollmentIds(sectionId);
+
+  const gradeRows = grades.map((entry) => {
+    if (!enrollmentMap.has(Number(entry.enrollment_id))) {
+      const error = new Error(`Enrollment ${entry.enrollment_id} does not belong to section ${sectionId}`);
+      error.status = 400;
+      throw error;
+    }
+
+    const midterm = entry.midterm ?? 0;
+    const finalExam = entry.final ?? 0;
+    const coursework = entry.coursework ?? 0;
+    const total = Number((midterm + finalExam + coursework).toFixed(2));
+    const { letter_grade, grade_points } = computeGrade(total);
+
+    return {
+      enrollment_id: Number(entry.enrollment_id),
+      midterm,
+      final: finalExam,
+      coursework,
+      total,
+      letter_grade,
+      grade_points,
+    };
+  });
+
+  await upsertSectionGrades(gradeRows, userId);
+
+  return listProfessorSectionGrades(userId, sectionId);
+}
+
+export async function createProfessorAttendanceSession(userId, sectionId, { session_date: sessionDate, topic }) {
+  const section = await findProfessorSectionById(userId, sectionId);
+  if (!section) {
+    return null;
+  }
+
+  return createAttendanceSession(sectionId, userId, sessionDate, topic);
+}
+
+export async function getProfessorAttendanceSessions(userId, sectionId) {
+  const section = await findProfessorSectionById(userId, sectionId);
+  if (!section) {
+    return null;
+  }
+
+  return listProfessorAttendanceSessions(userId, sectionId);
+}
+
+export async function getProfessorAttendanceSessionDetails(userId, sectionId, sessionId) {
+  const session = await findProfessorAttendanceSession(userId, sectionId, sessionId);
+  if (!session) {
+    return null;
+  }
+
+  const records = await listAttendanceRecordsBySession(sessionId);
+  return { session, records };
+}
+
+export async function updateProfessorAttendanceRecords(userId, sectionId, sessionId, { records }) {
+  const session = await findProfessorAttendanceSession(userId, sectionId, sessionId);
+  if (!session) {
+    return null;
+  }
+
+  const enrollmentMap = await listSectionEnrollmentIds(sectionId);
+  const sectionStudentIds = new Set([...enrollmentMap.values()]);
+
+  for (const record of records) {
+    if (!sectionStudentIds.has(Number(record.student_id))) {
+      const error = new Error(`Student ${record.student_id} is not enrolled in section ${sectionId}`);
+      error.status = 400;
+      throw error;
+    }
+  }
+
+  await upsertAttendanceRecords(sessionId, records);
+  return getProfessorAttendanceSessionDetails(userId, sectionId, sessionId);
+}
+
 export default {
   getProfessorProfile,
   getProfessorSections,
   getProfessorSchedule,
   getProfessorSectionStudents,
   getProfessorSectionGrades,
+  submitProfessorSectionGrades,
+  createProfessorAttendanceSession,
+  getProfessorAttendanceSessions,
+  getProfessorAttendanceSessionDetails,
+  updateProfessorAttendanceRecords,
 };
