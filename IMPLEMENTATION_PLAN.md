@@ -507,3 +507,686 @@ unione_node/
 ✅ 80%+ code coverage in tests
 ✅ API response times < 500ms
 ✅ Full parity with Laravel backend
+
+---
+
+# FRONTEND/UI IMPLEMENTATION PLAN
+
+## Technology Stack for Frontend
+
+### Recommended Stack
+- **Framework**: React 18+ (JavaScript/TypeScript)
+- **State Management**: Redux Toolkit or TanStack Query
+- **Styling**: Tailwind CSS + Shadcn/ui components
+- **Routing**: React Router v6
+- **HTTP Client**: Axios with interceptors
+- **Form Handling**: React Hook Form + Zod validation
+- **Icons**: Lucide React
+- **Charts/Analytics**: Recharts or Chart.js
+- **Calendar**: React Calendar or FullCalendar
+- **PDF Export**: jsPDF + html2canvas
+- **Notifications**: Sonner or React Hot Toast
+- **Testing**: Jest + React Testing Library
+- **Build Tool**: Vite (faster than Create React App)
+- **Type Safety**: TypeScript
+
+### Alternative Options
+- **Vue.js 3** - More approachable learning curve, excellent ecosystem
+- **Next.js** - Full-stack React with SSR/SSG capabilities
+- **Angular** - Enterprise-grade, if organization prefers
+
+---
+
+## Frontend Project Structure
+
+```
+unione_frontend/
+├── public/
+│   ├── icons/
+│   ├── logo.png
+│   └── index.html
+├── src/
+│   ├── components/
+│   │   ├── Auth/
+│   │   │   ├── LoginForm.tsx
+│   │   │   ├── PasswordReset.tsx
+│   │   │   └── ProfileUpdate.tsx
+│   │   ├── Common/
+│   │   │   ├── Header.tsx
+│   │   │   ├── Sidebar.tsx
+│   │   │   ├── Footer.tsx
+│   │   │   ├── Loading.tsx
+│   │   │   ├── ErrorBoundary.tsx
+│   │   │   └── NotFound.tsx
+│   │   ├── Student/
+│   │   │   ├── Dashboard.tsx
+│   │   │   ├── Enrollments.tsx
+│   │   │   ├── Grades.tsx
+│   │   │   ├── Transcript.tsx
+│   │   │   ├── Schedule.tsx
+│   │   │   ├── Attendance.tsx
+│   │   │   ├── Ratings.tsx
+│   │   │   └── Waitlist.tsx
+│   │   ├── Professor/
+│   │   │   ├── Dashboard.tsx
+│   │   │   ├── Sections.tsx
+│   │   │   ├── GradeSubmission.tsx
+│   │   │   ├── AttendanceTracker.tsx
+│   │   │   ├── Announcements.tsx
+│   │   │   └── StudentList.tsx
+│   │   ├── Admin/
+│   │   │   ├── Dashboard.tsx
+│   │   │   ├── UserManagement.tsx
+│   │   │   ├── RoleManagement.tsx
+│   │   │   ├── WebhookManagement.tsx
+│   │   │   └── AuditLogs.tsx
+│   │   └── Shared/
+│   │       ├── Announcements.tsx
+│   │       ├── Notifications.tsx
+│   │       └── NotificationCenter.tsx
+│   ├── pages/
+│   │   ├── LoginPage.tsx
+│   │   ├── StudentPortalPage.tsx
+│   │   ├── ProfessorPortalPage.tsx
+│   │   ├── AdminPortalPage.tsx
+│   │   └── UnauthorizedPage.tsx
+│   ├── hooks/
+│   │   ├── useAuth.ts
+│   │   ├── useStudent.ts
+│   │   ├── useProfessor.ts
+│   │   ├── useNotifications.ts
+│   │   └── useFetch.ts
+│   ├── context/
+│   │   ├── AuthContext.tsx
+│   │   ├── UserContext.tsx
+│   │   └── NotificationContext.tsx
+│   ├── store/ (Redux Toolkit)
+│   │   ├── authSlice.ts
+│   │   ├── studentSlice.ts
+│   │   ├── notificationSlice.ts
+│   │   └── store.ts
+│   ├── services/
+│   │   ├── api.ts
+│   │   ├── authService.ts
+│   │   ├── studentService.ts
+│   │   ├── professorService.ts
+│   │   ├── adminService.ts
+│   │   └── notificationService.ts
+│   ├── utils/
+│   │   ├── axios.ts (configured instance)
+│   │   ├── formatters.ts
+│   │   ├── validators.ts
+│   │   ├── constants.ts
+│   │   └── helpers.ts
+│   ├── types/
+│   │   ├── index.ts
+│   │   ├── api.ts
+│   │   ├── models.ts
+│   │   └── forms.ts
+│   ├── styles/
+│   │   ├── globals.css
+│   │   ├── tailwind.css
+│   │   └── variables.css
+│   ├── App.tsx
+│   └── main.tsx
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   └── e2e/
+├── .env.example
+├── .env
+├── .gitignore
+├── package.json
+├── vite.config.ts
+├── tsconfig.json
+├── tailwind.config.js
+├── postcss.config.js
+└── README.md
+```
+
+---
+
+## UI COMPONENTS BREAKDOWN
+
+### Authentication Pages (Week 1)
+- **Login Form**
+  - Email/Password input
+  - Forgot password link
+  - "Remember me" checkbox
+  - Error handling & validation
+  - Loading state
+
+- **Password Reset Flow**
+  - Email verification
+  - Reset link validation
+  - New password form
+  - Confirmation message
+
+- **Profile Update Modal**
+  - Phone number update
+  - Date of birth picker
+  - Avatar upload
+  - Save/Cancel buttons
+
+### Student Portal Dashboard (Week 2)
+- **Navigation/Sidebar**
+  - Role-based menu items
+  - Active course count badge
+  - GPA display
+  - Logout button
+
+- **Dashboard Cards**
+  - Current GPA (large display)
+  - Semester/Year info
+  - Enrolled course count
+  - Grade summary
+  - Upcoming classes
+
+- **Quick Actions**
+  - Enroll in course
+  - View grades
+  - Check attendance
+  - Submit ratings
+  - View schedule
+
+### Enrollment Management (Week 2)
+- **Course Catalog View**
+  - Search & filter courses
+  - Course cards (code, name, credits, professor)
+  - Prerequisites info
+  - Section capacity indicator
+  - Enroll button
+  - Waitlist option
+
+- **My Enrollments View**
+  - Table of enrolled courses
+  - Section info (professor, time, location)
+  - Current grade (if available)
+  - Drop option (with deadline warning)
+  - Sort & filter options
+
+- **Waitlist Management**
+  - Waitlist status table
+  - Position in queue
+  - Remove from waitlist button
+  - Notifications when moved to enrollment
+
+### Academic Records (Week 3)
+- **Grades Dashboard**
+  - Course list with grades
+  - Letter grade display
+  - Points breakdown
+  - GPA calculation
+  - Semester filter
+
+- **Transcript View**
+  - Academic history table (by semester)
+  - Term GPA display
+  - Cumulative GPA
+  - Courses taken per term
+  - PDF export button
+
+- **Schedule View**
+  - Calendar view of classes
+  - List view option
+  - Color-coded by course
+  - Time and location info
+  - iCal export button
+
+### Attendance Tracking (Week 3)
+- **Attendance Records**
+  - Table of attendance sessions
+  - Status indicators (present/absent/late)
+  - Attendance percentage
+  - Filter by section
+
+### Course Ratings (Week 3)
+- **Rating Form Modal**
+  - Star rating (1-5 scale)
+  - Feedback textarea
+  - Submit button
+  - Confirmation message
+
+- **My Ratings List**
+  - Courses rated
+  - Rating submitted
+  - Edit/Delete options
+
+### Professor Portal Dashboard (Week 4)
+- **Teaching Assignment Overview**
+  - Sections taught (current term)
+  - Enrollment count per section
+  - Student list quick link
+  - Grading status indicator
+
+- **Section Manager**
+  - List of taught sections
+  - Course info
+  - Section schedule
+  - Student count
+  - Action buttons (grade, attendance, announcements)
+
+### Grade Management (Week 4)
+- **Grade Input Form**
+  - Bulk student list with input fields
+  - Points/Letter grade display
+  - Validation warnings
+  - Save progress indicator
+  - Submit button
+
+- **Grade View**
+  - Student list with grades
+  - Filter & sort options
+  - Edit individual grades
+  - Search student
+
+### Attendance Management (Week 4)
+- **Attendance Session Creator**
+  - Date picker
+  - Session number input
+  - Create button
+
+- **Attendance Recorder**
+  - List of enrolled students
+  - Checkboxes for status (present/absent/late)
+  - Note field per student
+  - Save button
+  - Attendance percentage summary
+
+### Announcements (Week 5)
+- **Announcement List**
+  - University-wide announcements
+  - Title and preview
+  - Publication date
+  - Unread indicator
+  - Mark as read on click
+
+- **Section Announcements** (Professor)
+  - Create announcement form (professor only)
+  - Title + content editor (rich text)
+  - Publish button
+  - List of posted announcements with delete option
+
+### Notifications (Week 5)
+- **Notification Center**
+  - List of notifications (most recent first)
+  - Notification types (icons)
+  - Read/Unread status
+  - Timestamp
+  - Mark as read
+  - Delete notification
+  - Mark all as read button
+
+- **Bell Icon with Badge**
+  - Unread count
+  - Click to open notification center
+
+### Admin Portal (Week 6)
+- **Admin Dashboard**
+  - System statistics
+  - Recent audit logs
+  - Webhook delivery status
+  - User management link
+
+- **Webhook Management**
+  - List webhooks
+  - Create webhook form (URL, events, secret)
+  - Edit/Delete actions
+  - Delivery history view
+  - Test webhook button
+
+- **Audit Logs View**
+  - Filterable log table
+  - User, action, timestamp
+  - Changes before/after view
+  - IP address tracking
+
+---
+
+## UI PHASES & TIMELINE
+
+### Phase 1: Core Authentication & Layout (Week 1)
+- [x] Project setup (Vite + React)
+- [ ] Login page
+- [ ] Layout components (Header, Sidebar, Footer)
+- [ ] Route protection (PrivateRoute, RoleRoute)
+- [ ] Token storage & refresh
+
+### Phase 2: Student Portal Core (Week 2)
+- [ ] Dashboard
+- [ ] Enrollments (view, search, filter)
+- [ ] Course catalog
+- [ ] My enrollments list
+- [ ] Drop course functionality
+- [ ] Waitlist management
+
+### Phase 3: Student Academic Records (Week 3)
+- [ ] Grades view
+- [ ] Transcript (table + PDF export)
+- [ ] Academic history
+- [ ] Schedule (calendar + iCal export)
+- [ ] Attendance records
+- [ ] Course ratings form
+- [ ] My ratings list
+
+### Phase 4: Professor Portal (Week 4)
+- [ ] Professor dashboard
+- [ ] Sections overview
+- [ ] Student list per section
+- [ ] Bulk grade entry
+- [ ] Attendance session creation
+- [ ] Attendance recording
+- [ ] Section announcements
+
+### Phase 5: Communication & Shared Features (Week 5)
+- [ ] Announcements list
+- [ ] Notifications system
+- [ ] Notification center/badge
+- [ ] Mark read functionality
+- [ ] Profile update modal
+
+### Phase 6: Admin & Advanced Features (Week 6)
+- [ ] Admin dashboard
+- [ ] Webhook management UI
+- [ ] Audit logs viewer
+- [ ] User role management (advanced)
+
+### Phase 7: Polish & Optimization (Week 7)
+- [ ] Error boundaries
+- [ ] Loading states (Skeleton loaders)
+- [ ] Empty states
+- [ ] Responsive design
+- [ ] Accessibility (a11y)
+- [ ] Performance optimization
+- [ ] Dark mode (optional)
+
+### Phase 8: Testing & Deployment (Week 8)
+- [ ] Unit tests (components, hooks, utilities)
+- [ ] Integration tests (page navigation, data flow)
+- [ ] E2E tests (user workflows)
+- [ ] API documentation
+- [ ] Deployment setup (Docker, CI/CD)
+
+---
+
+## COMPONENT DEPENDENCIES & RELATIONSHIPS
+
+```
+App
+├── AuthProvider
+│   ├── Login Page
+│   └── PrivateRoute
+│       ├── StudentPortal
+│       │   ├── StudentDashboard
+│       │   │   ├── EnrollmentCard
+│       │   │   ├── GradesCard
+│       │   │   └── ScheduleCard
+│       │   ├── EnrollmentsPage
+│       │   │   ├── CourseCatalog
+│       │   │   └── MyEnrollments
+│       │   ├── AcademicRecordsPage
+│       │   │   ├── GradesView
+│       │   │   ├── TranscriptView
+│       │   │   ├── ScheduleView
+│       │   │   └── AttendanceView
+│       │   ├── RatingsPage
+│       │   └── WaitlistPage
+│       ├── ProfessorPortal
+│       │   ├── ProfessorDashboard
+│       │   ├── SectionsPage
+│       │   ├── GradeManagementPage
+│       │   ├── AttendancePage
+│       │   └── AnnouncementsPage
+│       ├── AdminPortal
+│       │   ├── AdminDashboard
+│       │   ├── WebhookManagementPage
+│       │   └── AuditLogsPage
+│       ├── AnnouncementsPage
+│       ├── NotificationCenter
+│       └── ProfileUpdateModal
+└── GlobalErrorBoundary
+```
+
+---
+
+## API INTEGRATION POINTS
+
+### Authentication Service
+```typescript
+- login(email, password) → token + user
+- logout() → clear token
+- refreshToken() → new token
+- getProfile() → user data
+- updateProfile(data) → updated user
+- changePassword(old, new) → confirmation
+```
+
+### Student Service
+```typescript
+- getEnrollments() → enrolled courses
+- enrollCourse(sectionId) → enrollment
+- dropCourse(enrollmentId) → confirmation
+- getGrades() → all grades
+- getTranscript() → academic history
+- getSchedule() → class schedule
+- getAttendance() → attendance records
+- submitRating(enrollmentId, rating) → confirmation
+- getWaitlist() → waitlist entries
+```
+
+### Professor Service
+```typescript
+- getSections() → taught sections
+- getSectionStudents(sectionId) → students
+- submitGrades(sectionId, grades) → confirmation
+- createAttendanceSession(sectionId) → session
+- recordAttendance(sessionId, records) → confirmation
+- createAnnouncement(sectionId, data) → announcement
+- getAnnouncements(sectionId) → announcements
+```
+
+### Shared Services
+```typescript
+- getAnnouncements() → announcements
+- markAnnouncementRead(id) → confirmation
+- getNotifications() → notifications
+- markNotificationRead(id) → confirmation
+- deleteNotification(id) → confirmation
+```
+
+---
+
+## DESIGN SYSTEM & STYLING
+
+### Color Palette
+```css
+Primary:     #3B82F6 (Blue)
+Secondary:   #8B5CF6 (Purple)
+Success:     #10B981 (Green)
+Warning:     #F59E0B (Amber)
+Error:       #EF4444 (Red)
+Neutral:     #6B7280 (Gray)
+```
+
+### Typography
+```
+Headings: Poppins or Inter (Sans-serif)
+Body:     Poppins or Inter (Sans-serif)
+Mono:     JetBrains Mono (Code)
+```
+
+### Responsive Breakpoints
+```css
+Mobile:     < 640px
+Tablet:     640px - 1024px
+Desktop:    > 1024px
+```
+
+### Component Library
+- Use Shadcn/ui for pre-built components
+- Customize with Tailwind CSS
+- Consistent spacing (4px base unit)
+- Accessible by default (WCAG 2.1 AA)
+
+---
+
+## STATE MANAGEMENT STRATEGY
+
+### Redux Slices
+- **authSlice**: user, token, isAuthenticated, loading
+- **studentSlice**: enrollments, grades, transcript, schedule
+- **notificationSlice**: notifications, unreadCount
+- **loadingSlice**: global loading states
+- **errorSlice**: error messages and alerts
+
+### React Query (Alternative/Complement)
+- Automatic caching of API responses
+- Background refetching
+- Optimistic updates
+- Pagination support
+
+---
+
+## PERFORMANCE OPTIMIZATION
+
+### Code Splitting
+- Route-based code splitting (React.lazy)
+- Component-level lazy loading
+- Dynamic imports for heavy components
+
+### Optimization Techniques
+- Memoization (React.memo, useMemo, useCallback)
+- Image optimization (lazy loading, compression)
+- Bundle size analysis (webpack-bundle-analyzer)
+- Caching strategy for API calls
+- Service workers for offline support
+
+### Core Web Vitals Targets
+- Largest Contentful Paint (LCP): < 2.5s
+- First Input Delay (FID): < 100ms
+- Cumulative Layout Shift (CLS): < 0.1
+
+---
+
+## ACCESSIBILITY REQUIREMENTS
+
+### Features
+- Semantic HTML (nav, main, section, article)
+- ARIA labels for interactive elements
+- Keyboard navigation support
+- Screen reader friendly
+- Color contrast ratios (4.5:1 for normal text)
+- Focus indicators visible
+- Form validation messages associated with inputs
+
+### Testing
+- Axe DevTools for automated scanning
+- Manual testing with screen readers (NVDA, JAWS)
+- Keyboard-only navigation testing
+
+---
+
+## DEPLOYMENT STRATEGY
+
+### Development
+```bash
+npm run dev
+# Vite development server on http://localhost:5173
+```
+
+### Building
+```bash
+npm run build
+# Optimized production bundle in /dist
+```
+
+### Docker Configuration
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile
+COPY . .
+RUN yarn build
+CMD ["yarn", "preview"]
+```
+
+### Environment Variables
+```
+VITE_API_URL=http://localhost:3000/api
+VITE_APP_NAME=UniOne
+VITE_LOG_LEVEL=debug
+```
+
+---
+
+## TESTING STRATEGY
+
+### Unit Tests (Components, Hooks, Utilities)
+```
+Frameworks: Jest + React Testing Library
+Coverage Target: 80%+
+```
+
+### Integration Tests (Page Navigation, Data Flow)
+```
+Test User Workflows:
+- Login → Student Dashboard → Enroll → View Grades
+- Login → Professor → Grade Students
+- Login → Admin → Manage Webhooks
+```
+
+### E2E Tests (Full User Scenarios)
+```
+Framework: Cypress or Playwright
+Test Critical Paths:
+- Complete enrollment workflow
+- Grading system
+- Attendance tracking
+```
+
+---
+
+## ESTIMATED EFFORT (FRONTEND)
+
+| Phase | Focus | Duration |
+|-------|-------|----------|
+| **1** | Auth, Layout | 5 days |
+| **2** | Student Core | 4 days |
+| **3** | Academic Records | 4 days |
+| **4** | Professor Portal | 4 days |
+| **5** | Communication | 3 days |
+| **6** | Admin Features | 3 days |
+| **7** | Polish & UX | 4 days |
+| **8** | Testing & Deploy | 4 days |
+| **TOTAL** | Full Frontend | **31 days (~5-6 weeks)** |
+
+---
+
+## FULL STACK TIMELINE
+
+| Component | Duration | Total |
+|-----------|----------|-------|
+| Backend (Node.js) | 4-5 weeks | Week 1-5 |
+| Frontend (React) | 5-6 weeks | Week 1-6 |
+| **PARALLEL**: Both can be developed simultaneously after API contracts are defined | - | - |
+| Integration & Docs | 1 week | Week 6-7 |
+| **TOTAL PROJECT** | - | **7-8 weeks** |
+
+---
+
+## FRONTEND SUCCESS CRITERIA
+
+✅ All 52 API endpoints consumed and integrated  
+✅ Student portal fully functional (enrollments, grades, schedule)  
+✅ Professor portal fully functional (grading, attendance)  
+✅ Admin portal functional (webhooks, audit logs)  
+✅ Real-time notifications working  
+✅ PDF transcript generation  
+✅ iCal schedule export  
+✅ Role-based access enforcement  
+✅ 80%+ test coverage  
+✅ Responsive design (mobile, tablet, desktop)  
+✅ Accessibility compliance (WCAG 2.1 AA)  
+✅ Performance: LCP < 2.5s, FID < 100ms  
+✅ 0 console errors in production build
