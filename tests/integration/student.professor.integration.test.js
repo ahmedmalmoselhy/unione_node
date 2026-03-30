@@ -59,6 +59,16 @@ describe('Student and professor domain integration', () => {
       .set('Authorization', `Bearer ${studentToken}`)
       .expect(200);
 
+    await request(app)
+      .get('/api/student/attendance')
+      .set('Authorization', `Bearer ${studentToken}`)
+      .expect(200);
+
+    await request(app)
+      .get('/api/student/ratings')
+      .set('Authorization', `Bearer ${studentToken}`)
+      .expect(200);
+
     const transcriptRes = await request(app)
       .get('/api/student/transcript')
       .set('Authorization', `Bearer ${studentToken}`)
@@ -279,6 +289,89 @@ describe('Student and professor domain integration', () => {
       .delete(`/api/student/enrollments/${enrollment.id}`)
       .set('Authorization', `Bearer ${studentToken}`)
       .expect(400);
+  });
+
+  test('student can submit rating for completed enrollment', async () => {
+    const student = await db('students as s')
+      .join('users as u', 'u.id', 's.user_id')
+      .whereRaw('LOWER(u.email) = LOWER(?)', [studentEmail])
+      .select('s.id as student_id')
+      .first();
+
+    const professor = await db('professors').select('id').first();
+
+    const [term] = await db('academic_terms')
+      .insert({
+        name: `Rating Term ${Date.now()}`,
+        name_ar: `Rating Term ${Date.now()}`,
+        academic_year: 4500 + Math.floor(Math.random() * 400),
+        semester: 'first',
+        starts_at: '2099-01-01',
+        ends_at: '2099-05-30',
+        registration_starts_at: '2098-12-01',
+        registration_ends_at: '2099-01-15',
+        withdrawal_deadline: '2099-02-15',
+        is_active: false,
+        created_at: db.fn.now(),
+        updated_at: db.fn.now(),
+      })
+      .returning('id');
+
+    const [course] = await db('courses')
+      .insert({
+        code: `RT-${Date.now()}`,
+        name: 'Rating Integration Course',
+        name_ar: 'Rating Integration Course',
+        description: 'Course for student rating integration test',
+        credit_hours: 3,
+        lecture_hours: 3,
+        lab_hours: 0,
+        level: 2,
+        is_elective: false,
+        is_active: true,
+        created_at: db.fn.now(),
+        updated_at: db.fn.now(),
+      })
+      .returning('id');
+
+    const [section] = await db('sections')
+      .insert({
+        course_id: course.id,
+        professor_id: professor.id,
+        capacity: 40,
+        room: 'R-220',
+        schedule: JSON.stringify({ days: [2], start_time: '10:00', end_time: '11:00' }),
+        is_active: true,
+        academic_term_id: term.id,
+        created_at: db.fn.now(),
+        updated_at: db.fn.now(),
+      })
+      .returning('id');
+
+    const [enrollment] = await db('enrollments')
+      .insert({
+        student_id: student.student_id,
+        section_id: section.id,
+        academic_term_id: term.id,
+        status: 'completed',
+        registered_at: db.fn.now(),
+        created_at: db.fn.now(),
+        updated_at: db.fn.now(),
+      })
+      .returning('id');
+
+    await request(app)
+      .post('/api/student/ratings')
+      .set('Authorization', `Bearer ${studentToken}`)
+      .send({ enrollment_id: enrollment.id, rating: 5, comment: 'Excellent course' })
+      .expect(201);
+
+    const ratingsRes = await request(app)
+      .get('/api/student/ratings')
+      .set('Authorization', `Bearer ${studentToken}`)
+      .expect(200);
+
+    expect(ratingsRes.body.data.some((row) => Number(row.enrollment_id) === Number(enrollment.id))).toBe(true);
   });
 
   test('webhook deliveries are recorded for enrollment and grade events', async () => {

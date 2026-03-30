@@ -17,6 +17,10 @@ import {
   countPassedPrerequisites,
   listStudentEnrollmentsByUserId,
   listStudentGradesByUserId,
+  listStudentAttendanceByUserId,
+  listStudentRatingsByUserId,
+  findEnrollmentByIdAndStudentUserId,
+  upsertCourseRatingByEnrollmentId,
 } from '../models/studentModel.js';
 import { buildScheduleIcs, buildTranscriptPdfBuffer } from '../utils/exportBuilders.js';
 import { dispatchWebhookEvent } from './webhookService.js';
@@ -106,6 +110,35 @@ export async function getStudentSchedule(userId, { academic_term_id: academicTer
 export async function getStudentScheduleIcs(userId, query = {}) {
   const schedule = await getStudentSchedule(userId, query);
   return buildScheduleIcs(schedule, 'UniOne Student Schedule');
+}
+
+export async function getStudentAttendance(userId, { section_id: sectionId, academic_term_id: academicTermId } = {}) {
+  return listStudentAttendanceByUserId(userId, {
+    sectionId,
+    academicTermId,
+  });
+}
+
+export async function getStudentRatings(userId, { academic_term_id: academicTermId } = {}) {
+  return listStudentRatingsByUserId(userId, {
+    academicTermId,
+  });
+}
+
+export async function submitStudentRating(userId, { enrollment_id: enrollmentId, rating, comment }) {
+  const enrollment = await findEnrollmentByIdAndStudentUserId(enrollmentId, userId);
+
+  if (!enrollment) {
+    return { ok: false, code: 'enrollment_not_found' };
+  }
+
+  if (enrollment.status !== 'completed') {
+    return { ok: false, code: 'enrollment_not_completed' };
+  }
+
+  const saved = await upsertCourseRatingByEnrollmentId(enrollmentId, { rating, comment });
+
+  return { ok: true, data: saved };
 }
 
 export async function enrollInSection(userId, { section_id: sectionId, academic_term_id: academicTermId }) {
@@ -266,6 +299,9 @@ export default {
   getStudentTranscriptPdf,
   getStudentSchedule,
   getStudentScheduleIcs,
+  getStudentAttendance,
+  getStudentRatings,
+  submitStudentRating,
   enrollInSection,
   dropEnrollment,
   getStudentWaitlist,

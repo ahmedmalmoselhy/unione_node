@@ -295,6 +295,107 @@ export async function listStudentGradesByUserId(userId, { academicTermId } = {})
   return query;
 }
 
+export async function listStudentAttendanceByUserId(userId, { sectionId, academicTermId } = {}) {
+  const query = db('attendance_records as ar')
+    .join('attendance_sessions as asn', 'asn.id', 'ar.attendance_session_id')
+    .join('sections as sec', 'sec.id', 'asn.section_id')
+    .join('courses as c', 'c.id', 'sec.course_id')
+    .leftJoin('academic_terms as t', 't.id', 'sec.academic_term_id')
+    .join('students as s', 's.id', 'ar.student_id')
+    .where('s.user_id', userId)
+    .select(
+      'ar.id',
+      'ar.status',
+      'ar.note',
+      'asn.id as attendance_session_id',
+      'asn.session_date',
+      'asn.topic',
+      'sec.id as section_id',
+      'sec.room as section_room',
+      'c.id as course_id',
+      'c.code as course_code',
+      'c.name as course_name',
+      't.id as academic_term_id',
+      't.name as term_name',
+      't.academic_year as term_academic_year',
+      't.semester as term_semester'
+    )
+    .orderBy('asn.session_date', 'desc');
+
+  if (sectionId) {
+    query.andWhere('sec.id', sectionId);
+  }
+
+  if (academicTermId) {
+    query.andWhere('sec.academic_term_id', academicTermId);
+  }
+
+  return query;
+}
+
+export async function listStudentRatingsByUserId(userId, { academicTermId } = {}) {
+  const query = db('course_ratings as cr')
+    .join('enrollments as e', 'e.id', 'cr.enrollment_id')
+    .join('students as s', 's.id', 'e.student_id')
+    .join('sections as sec', 'sec.id', 'e.section_id')
+    .join('courses as c', 'c.id', 'sec.course_id')
+    .leftJoin('academic_terms as t', 't.id', 'e.academic_term_id')
+    .where('s.user_id', userId)
+    .select(
+      'cr.id',
+      'cr.enrollment_id',
+      'cr.rating',
+      'cr.comment',
+      'cr.rated_at',
+      'c.id as course_id',
+      'c.code as course_code',
+      'c.name as course_name',
+      'sec.id as section_id',
+      't.id as academic_term_id',
+      't.name as term_name',
+      't.academic_year as term_academic_year',
+      't.semester as term_semester'
+    )
+    .orderBy('cr.rated_at', 'desc');
+
+  if (academicTermId) {
+    query.andWhere('e.academic_term_id', academicTermId);
+  }
+
+  return query;
+}
+
+export async function findEnrollmentByIdAndStudentUserId(enrollmentId, userId) {
+  return db('enrollments as e')
+    .join('students as s', 's.id', 'e.student_id')
+    .where('e.id', enrollmentId)
+    .andWhere('s.user_id', userId)
+    .select('e.id', 'e.student_id', 'e.section_id', 'e.academic_term_id', 'e.status')
+    .first();
+}
+
+export async function upsertCourseRatingByEnrollmentId(enrollmentId, { rating, comment }) {
+  const [row] = await db('course_ratings')
+    .insert({
+      enrollment_id: enrollmentId,
+      rating,
+      comment: comment || null,
+      rated_at: db.fn.now(),
+      created_at: db.fn.now(),
+      updated_at: db.fn.now(),
+    })
+    .onConflict('enrollment_id')
+    .merge({
+      rating: db.raw('excluded.rating'),
+      comment: db.raw('excluded.comment'),
+      rated_at: db.raw('excluded.rated_at'),
+      updated_at: db.raw('excluded.updated_at'),
+    })
+    .returning(['id', 'enrollment_id', 'rating', 'comment', 'rated_at']);
+
+  return row;
+}
+
 export default {
   findStudentProfileByUserId,
   findStudentByUserId,
@@ -315,4 +416,8 @@ export default {
   countPassedPrerequisites,
   listStudentEnrollmentsByUserId,
   listStudentGradesByUserId,
+  listStudentAttendanceByUserId,
+  listStudentRatingsByUserId,
+  findEnrollmentByIdAndStudentUserId,
+  upsertCourseRatingByEnrollmentId,
 };

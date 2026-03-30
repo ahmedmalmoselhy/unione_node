@@ -10,6 +10,9 @@ import {
   transcriptPdf,
   schedule,
   scheduleIcs,
+  attendance,
+  ratings,
+  submitRating,
   enroll,
   drop,
   waitlist,
@@ -18,6 +21,9 @@ import {
 import {
   studentEnrollmentsQuerySchema,
   studentGradesQuerySchema,
+  studentAttendanceQuerySchema,
+  studentRatingsQuerySchema,
+  studentRatingCreateSchema,
   studentEnrollSchema,
   studentEnrollmentIdParamSchema,
   studentWaitlistSectionParamSchema,
@@ -38,6 +44,9 @@ router.get('/transcript', validate(studentGradesQuerySchema, 'query'), transcrip
 router.get('/transcript/pdf', validate(studentGradesQuerySchema, 'query'), transcriptPdf);
 router.get('/schedule', validate(studentGradesQuerySchema, 'query'), schedule);
 router.get('/schedule/ics', validate(studentGradesQuerySchema, 'query'), scheduleIcs);
+router.get('/attendance', validate(studentAttendanceQuerySchema, 'query'), attendance);
+router.get('/ratings', validate(studentRatingsQuerySchema, 'query'), ratings);
+router.post('/ratings', writeLimiter, validate(studentRatingCreateSchema), submitRating);
 router.get('/waitlist', waitlist);
 router.delete('/waitlist/:sectionId', writeLimiter, validate(studentWaitlistSectionParamSchema, 'params'), removeWaitlist);
 

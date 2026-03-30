@@ -7,6 +7,9 @@ import {
   getStudentTranscriptPdf,
   getStudentSchedule,
   getStudentScheduleIcs,
+  getStudentAttendance,
+  getStudentRatings,
+  submitStudentRating,
   enrollInSection,
   dropEnrollment,
   getStudentWaitlist,
@@ -80,6 +83,44 @@ export async function scheduleIcs(req, res, next) {
     res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
     res.setHeader('Content-Disposition', 'attachment; filename="schedule.ics"');
     return res.status(200).send(icsContent);
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function attendance(req, res, next) {
+  try {
+    const data = await getStudentAttendance(req.user.id, req.query);
+    return res.status(200).json(success(data, 'Student attendance fetched successfully', 200));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function ratings(req, res, next) {
+  try {
+    const data = await getStudentRatings(req.user.id, req.query);
+    return res.status(200).json(success(data, 'Student ratings fetched successfully', 200));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function submitRating(req, res, next) {
+  try {
+    const result = await submitStudentRating(req.user.id, req.body);
+
+    if (!result.ok) {
+      const map = {
+        enrollment_not_found: [404, 'Enrollment not found'],
+        enrollment_not_completed: [400, 'Rating is only allowed for completed enrollments'],
+      };
+
+      const [statusCode, message] = map[result.code] || [400, 'Unable to submit rating'];
+      return res.status(statusCode).json(errorResponse(message, statusCode));
+    }
+
+    return res.status(201).json(success(result.data, 'Course rating submitted successfully', 201));
   } catch (error) {
     return next(error);
   }
