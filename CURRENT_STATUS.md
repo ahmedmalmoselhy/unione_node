@@ -77,6 +77,7 @@
 - ✅ Webhook management APIs implemented (`GET/POST/PATCH/DELETE /api/webhooks`)
 - ✅ Notification preference controls implemented (`GET/PUT /api/notifications/preferences`)
 - ✅ Webhook retry/backoff controls implemented (3-attempt exponential backoff with delivery metadata headers)
+- ✅ Admin analytics endpoints implemented (`GET /api/admin/analytics/ratings`, `GET /api/admin/analytics/attendance`)
 
 ### Frontend Planning: ✅ **COMPLETE**
 - ✅ Tech stack selected (React + TypeScript + Vite)
@@ -194,10 +195,10 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 
 ### For Backend Developer
 1. Expand authorization policy coverage to student/professor/admin route groups
-2. Add admin analytics endpoints for ratings and attendance summaries
-3. Add attendance summary endpoint grouped by section/course
-4. Add per-user mute windows (quiet hours) for notifications
-5. Add webhook dead-letter endpoint for failed deliveries
+2. Add attendance summary endpoint grouped by section/course with date filters
+3. Add per-user mute windows (quiet hours) for notifications
+4. Add webhook dead-letter endpoint for failed deliveries
+5. Add admin endpoint for failed webhook deliveries
 
 ### For Frontend Developer
 1. **Read**: QUICK_REFERENCE.md for fast lookup

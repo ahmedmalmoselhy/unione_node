@@ -232,4 +232,20 @@ describe('Announcements and notifications integration', () => {
       .set('Authorization', `Bearer ${studentToken}`)
       .expect(200);
   });
+
+  test('admin analytics endpoints return ratings and attendance summaries', async () => {
+    const ratingsRes = await request(app)
+      .get('/api/admin/analytics/ratings')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200);
+
+    expect(Array.isArray(ratingsRes.body.data)).toBe(true);
+
+    const attendanceRes = await request(app)
+      .get('/api/admin/analytics/attendance')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200);
+
+    expect(Array.isArray(attendanceRes.body.data)).toBe(true);
+  });
 });
