@@ -4,6 +4,8 @@ import {
   createMyWebhook,
   updateMyWebhook,
   deleteMyWebhook,
+  listMyDeadLetterDeliveries,
+  retryMyDeadLetterDelivery,
 } from '../services/webhookManagementService.js';
 
 export async function listWebhooks(req, res, next) {
@@ -47,6 +49,24 @@ export async function deleteWebhook(req, res, next) {
     }
 
     return res.status(200).json(success({ deleted: true }, 'Webhook deleted successfully', 200));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function listDeadLetterWebhooks(req, res, next) {
+  try {
+    const data = await listMyDeadLetterDeliveries(req.user.id, req.query);
+    return res.status(200).json(success({ items: data }, 'Dead-letter deliveries fetched successfully', 200));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function retryDeadLetterWebhook(req, res, next) {
+  try {
+    const data = await retryMyDeadLetterDelivery(req.user.id, Number(req.params.deliveryId));
+    return res.status(200).json(success(data, 'Dead-letter delivery retry attempted', 200));
   } catch (error) {
     return next(error);
   }

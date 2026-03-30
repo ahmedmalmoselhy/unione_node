@@ -15,3 +15,11 @@ export const updateWebhookSchema = Joi.object({
   events: Joi.array().items(Joi.string().max(120)).min(1).optional(),
   is_active: Joi.boolean().optional(),
 }).min(1);
+
+export const deadLetterQuerySchema = Joi.object({
+  limit: Joi.number().integer().min(1).max(200).optional(),
+});
+
+export const deadLetterIdParamSchema = Joi.object({
+  deliveryId: Joi.number().integer().positive().required(),
+});

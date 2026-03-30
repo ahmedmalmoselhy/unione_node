@@ -233,6 +233,54 @@ describe('Announcements and notifications integration', () => {
       .expect(200);
   });
 
+  test('webhook dead-letter endpoints list and retry failed deliveries', async () => {
+    if (!canRun || !canRunWebhooks) {
+      return;
+    }
+
+    const [webhook] = await db('webhooks')
+      .insert({
+        user_id: studentUserId,
+        url: 'http://127.0.0.1:1/dead-letter-webhook-test',
+        secret: 'dead-letter-secret-test',
+        events: JSON.stringify(['enrollment.created']),
+        is_active: true,
+        created_at: db.fn.now(),
+        updated_at: db.fn.now(),
+      })
+      .returning('id');
+
+    const [failedDelivery] = await db('webhook_deliveries')
+      .insert({
+        webhook_id: webhook.id,
+        event: 'enrollment.created',
+        payload: JSON.stringify({ enrollment_id: 123 }),
+        response_status: 500,
+        response_body: 'Initial failure',
+        attempt: 3,
+        delivered_at: db.fn.now(),
+        created_at: db.fn.now(),
+        updated_at: db.fn.now(),
+      })
+      .returning('id');
+
+    const listRes = await request(app)
+      .get('/api/webhooks/dead-letter?limit=25')
+      .set('Authorization', `Bearer ${studentToken}`)
+      .expect(200);
+
+    expect(Array.isArray(listRes.body.data.items)).toBe(true);
+    expect(listRes.body.data.items.some((item) => Number(item.id) === Number(failedDelivery.id))).toBe(true);
+
+    const retryRes = await request(app)
+      .post(`/api/webhooks/dead-letter/${failedDelivery.id}/retry`)
+      .set('Authorization', `Bearer ${studentToken}`)
+      .expect(200);
+
+    expect(retryRes.body.data.retried).toBe(true);
+    expect(typeof retryRes.body.data.success).toBe('boolean');
+  });
+
   test('admin analytics endpoints return ratings and attendance summaries', async () => {
     const ratingsRes = await request(app)
       .get('/api/admin/analytics/ratings')

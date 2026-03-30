@@ -90,6 +90,32 @@ export async function incrementWebhookFailure(webhookId) {
     });
 }
 
+export async function listDeadLetterDeliveriesByUserId(userId, limit = 50) {
+  return db('webhook_deliveries as d')
+    .join('webhooks as w', 'w.id', 'd.webhook_id')
+    .where('w.user_id', userId)
+    .where('d.attempt', '>=', 3)
+    .where((query) => {
+      query.whereNull('d.response_status').orWhere('d.response_status', '>=', 400);
+    })
+    .select('d.id', 'd.webhook_id', 'd.event', 'd.response_status', 'd.response_body', 'd.attempt', 'd.delivered_at', 'd.created_at')
+    .orderBy('d.created_at', 'desc')
+    .limit(limit);
+}
+
+export async function getDeadLetterDeliveryByIdAndUserId(userId, deliveryId) {
+  return db('webhook_deliveries as d')
+    .join('webhooks as w', 'w.id', 'd.webhook_id')
+    .where('w.user_id', userId)
+    .where('d.id', deliveryId)
+    .where('d.attempt', '>=', 3)
+    .where((query) => {
+      query.whereNull('d.response_status').orWhere('d.response_status', '>=', 400);
+    })
+    .select('d.id', 'd.webhook_id', 'd.event', 'd.payload', 'd.attempt', 'w.url', 'w.secret')
+    .first();
+}
+
 export default {
   listActiveWebhooksForEvent,
   listWebhooksByUserId,
@@ -99,4 +125,6 @@ export default {
   createWebhookDelivery,
   markWebhookSuccess,
   incrementWebhookFailure,
+  listDeadLetterDeliveriesByUserId,
+  getDeadLetterDeliveryByIdAndUserId,
 };
