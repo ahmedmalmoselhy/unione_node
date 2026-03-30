@@ -18,6 +18,7 @@ import {
   listStudentEnrollmentsByUserId,
   listStudentGradesByUserId,
 } from '../models/studentModel.js';
+import { buildScheduleIcs, buildTranscriptPdfBuffer } from '../utils/exportBuilders.js';
 
 export async function getStudentProfile(userId) {
   return findStudentProfileByUserId(userId);
@@ -34,6 +35,68 @@ export async function getStudentGrades(userId, { academic_term_id: academicTermI
   return listStudentGradesByUserId(userId, {
     academicTermId,
   });
+}
+
+export async function getStudentTranscript(userId, { academic_term_id: academicTermId } = {}) {
+  const [profile, grades] = await Promise.all([
+    findStudentProfileByUserId(userId),
+    listStudentGradesByUserId(userId, { academicTermId }),
+  ]);
+
+  const graded = grades.filter((row) => row.grade_points !== null && row.grade_points !== undefined);
+  const totalCredits = graded.reduce((sum, row) => sum + Number(row.credit_hours || 0), 0);
+  const weightedGradePoints = graded.reduce(
+    (sum, row) => sum + Number(row.grade_points || 0) * Number(row.credit_hours || 0),
+    0
+  );
+
+  const earnedCredits = grades
+    .filter((row) => Number(row.total || 0) >= 60)
+    .reduce((sum, row) => sum + Number(row.credit_hours || 0), 0);
+
+  const transcript = {
+    academic_history: grades,
+    total_gpa: totalCredits > 0 ? Number((weightedGradePoints / totalCredits).toFixed(2)) : 0,
+    earned_credits: earnedCredits,
+  };
+
+  return {
+    student: profile,
+    transcript,
+  };
+}
+
+export async function getStudentTranscriptPdf(userId, query = {}) {
+  const payload = await getStudentTranscript(userId, query);
+  return buildTranscriptPdfBuffer(payload);
+}
+
+export async function getStudentSchedule(userId, { academic_term_id: academicTermId } = {}) {
+  const enrollments = await listStudentEnrollmentsByUserId(userId, {
+    status: 'registered',
+    academicTermId,
+  });
+
+  return enrollments.map((row) => ({
+    section_id: row.section_id,
+    course_id: row.course_id,
+    course_code: row.course_code,
+    course_name: row.course_name,
+    professor_id: row.professor_id,
+    professor_first_name: row.professor_first_name,
+    professor_last_name: row.professor_last_name,
+    section_room: row.section_room,
+    section_schedule: row.section_schedule,
+    term_name: row.term_name,
+    academic_term_id: row.academic_term_id,
+    term_starts_at: row.term_starts_at,
+    term_ends_at: row.term_ends_at,
+  }));
+}
+
+export async function getStudentScheduleIcs(userId, query = {}) {
+  const schedule = await getStudentSchedule(userId, query);
+  return buildScheduleIcs(schedule, 'UniOne Student Schedule');
 }
 
 export async function enrollInSection(userId, { section_id: sectionId, academic_term_id: academicTermId }) {
@@ -143,6 +206,10 @@ export default {
   getStudentProfile,
   getStudentEnrollments,
   getStudentGrades,
+  getStudentTranscript,
+  getStudentTranscriptPdf,
+  getStudentSchedule,
+  getStudentScheduleIcs,
   enrollInSection,
   dropEnrollment,
   getStudentWaitlist,

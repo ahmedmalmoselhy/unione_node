@@ -235,6 +235,8 @@ export async function listStudentEnrollmentsByUserId(userId, { status, academicT
       't.name as term_name',
       't.academic_year as term_academic_year',
       't.semester as term_semester',
+      't.starts_at as term_starts_at',
+      't.ends_at as term_ends_at',
       'p.id as professor_id',
       'pu.first_name as professor_first_name',
       'pu.last_name as professor_last_name'

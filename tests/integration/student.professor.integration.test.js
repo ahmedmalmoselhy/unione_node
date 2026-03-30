@@ -59,6 +59,34 @@ describe('Student and professor domain integration', () => {
       .set('Authorization', `Bearer ${studentToken}`)
       .expect(200);
 
+    const transcriptRes = await request(app)
+      .get('/api/student/transcript')
+      .set('Authorization', `Bearer ${studentToken}`)
+      .expect(200);
+
+    expect(transcriptRes.body.data).toHaveProperty('transcript.total_gpa');
+
+    await request(app)
+      .get('/api/student/transcript/pdf')
+      .set('Authorization', `Bearer ${studentToken}`)
+      .expect('Content-Type', /application\/pdf/)
+      .expect(200);
+
+    const scheduleRes = await request(app)
+      .get('/api/student/schedule')
+      .set('Authorization', `Bearer ${studentToken}`)
+      .expect(200);
+
+    expect(Array.isArray(scheduleRes.body.data)).toBe(true);
+
+    const icsRes = await request(app)
+      .get('/api/student/schedule/ics')
+      .set('Authorization', `Bearer ${studentToken}`)
+      .expect('Content-Type', /text\/calendar/)
+      .expect(200);
+
+    expect(String(icsRes.text)).toContain('BEGIN:VCALENDAR');
+
     await request(app)
       .get('/api/student/profile')
       .set('Authorization', `Bearer ${professorToken}`)

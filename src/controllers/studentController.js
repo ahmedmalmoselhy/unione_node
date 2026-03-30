@@ -3,6 +3,10 @@ import {
   getStudentProfile,
   getStudentEnrollments,
   getStudentGrades,
+  getStudentTranscript,
+  getStudentTranscriptPdf,
+  getStudentSchedule,
+  getStudentScheduleIcs,
   enrollInSection,
   dropEnrollment,
   getStudentWaitlist,
@@ -36,6 +40,46 @@ export async function grades(req, res, next) {
   try {
     const data = await getStudentGrades(req.user.id, req.query);
     return res.status(200).json(success(data, 'Student grades fetched successfully', 200));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function transcript(req, res, next) {
+  try {
+    const data = await getStudentTranscript(req.user.id, req.query);
+    return res.status(200).json(success(data, 'Student transcript fetched successfully', 200));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function transcriptPdf(req, res, next) {
+  try {
+    const pdfBuffer = await getStudentTranscriptPdf(req.user.id, req.query);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="transcript.pdf"');
+    return res.status(200).send(pdfBuffer);
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function schedule(req, res, next) {
+  try {
+    const data = await getStudentSchedule(req.user.id, req.query);
+    return res.status(200).json(success(data, 'Student schedule fetched successfully', 200));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function scheduleIcs(req, res, next) {
+  try {
+    const icsContent = await getStudentScheduleIcs(req.user.id, req.query);
+    res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="schedule.ics"');
+    return res.status(200).send(icsContent);
   } catch (error) {
     return next(error);
   }

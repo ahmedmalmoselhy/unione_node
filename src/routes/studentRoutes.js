@@ -2,7 +2,19 @@ import express from 'express';
 import authenticate from '../middleware/authenticate.js';
 import { authorizeAny } from '../middleware/authorize.js';
 import { validate } from '../utils/validator.js';
-import { profile, enrollments, grades, enroll, drop, waitlist, removeWaitlist } from '../controllers/studentController.js';
+import {
+  profile,
+  enrollments,
+  grades,
+  transcript,
+  transcriptPdf,
+  schedule,
+  scheduleIcs,
+  enroll,
+  drop,
+  waitlist,
+  removeWaitlist,
+} from '../controllers/studentController.js';
 import {
   studentEnrollmentsQuerySchema,
   studentGradesQuerySchema,
@@ -22,6 +34,10 @@ router.get('/enrollments', validate(studentEnrollmentsQuerySchema, 'query'), enr
 router.post('/enrollments', writeLimiter, validate(studentEnrollSchema), enroll);
 router.delete('/enrollments/:id', writeLimiter, validate(studentEnrollmentIdParamSchema, 'params'), drop);
 router.get('/grades', validate(studentGradesQuerySchema, 'query'), grades);
+router.get('/transcript', validate(studentGradesQuerySchema, 'query'), transcript);
+router.get('/transcript/pdf', validate(studentGradesQuerySchema, 'query'), transcriptPdf);
+router.get('/schedule', validate(studentGradesQuerySchema, 'query'), schedule);
+router.get('/schedule/ics', validate(studentGradesQuerySchema, 'query'), scheduleIcs);
 router.get('/waitlist', waitlist);
 router.delete('/waitlist/:sectionId', writeLimiter, validate(studentWaitlistSectionParamSchema, 'params'), removeWaitlist);
 
