@@ -94,6 +94,8 @@ export async function enroll(req, res, next) {
         student_not_found: [404, 'Student profile not found'],
         student_not_active: [403, 'Student is not active for enrollment'],
         section_not_found: [404, 'Section not found or inactive'],
+        registration_not_started: [403, 'Registration window has not started for this term'],
+        registration_closed: [403, 'Registration window is closed for this term'],
         already_enrolled: [409, 'Student is already enrolled in this section'],
         missing_prerequisites: [400, 'Missing course prerequisites'],
         section_full_waitlisted: [202, 'Section is full. Student added to waitlist'],
@@ -124,6 +126,7 @@ export async function drop(req, res, next) {
       const map = {
         not_found: [404, 'Enrollment not found'],
         not_droppable: [400, 'Enrollment cannot be dropped in current status'],
+        withdrawal_deadline_passed: [400, 'Withdrawal deadline has passed for this term'],
       };
 
       const [statusCode, message] = map[result.code] || [400, 'Unable to drop enrollment'];

@@ -166,6 +166,87 @@ describe('Student and professor domain integration', () => {
       .expect(200);
   });
 
+  test('student enrollment checks registration window and withdrawal deadlines', async () => {
+    const student = await db('students as s')
+      .join('users as u', 'u.id', 's.user_id')
+      .whereRaw('LOWER(u.email) = LOWER(?)', [studentEmail])
+      .select('s.id as student_id')
+      .first();
+
+    const professor = await db('professors').select('id').first();
+
+    const [term] = await db('academic_terms')
+      .insert({
+        name: `Closed Term ${Date.now()}`,
+        name_ar: `Closed Term ${Date.now()}`,
+        academic_year: 2099,
+        semester: 'summer',
+        starts_at: '2099-06-01',
+        ends_at: '2099-08-30',
+        registration_starts_at: '2000-01-01',
+        registration_ends_at: '2000-01-15',
+        withdrawal_deadline: '2000-01-20',
+        is_active: false,
+        created_at: db.fn.now(),
+        updated_at: db.fn.now(),
+      })
+      .returning('id');
+
+    const [course] = await db('courses')
+      .insert({
+        code: `TST-${Date.now()}`,
+        name: 'Constraint Test Course',
+        name_ar: 'Constraint Test Course',
+        description: 'Course for integration constraint checks',
+        credit_hours: 3,
+        lecture_hours: 3,
+        lab_hours: 0,
+        level: 1,
+        is_elective: false,
+        is_active: true,
+        created_at: db.fn.now(),
+        updated_at: db.fn.now(),
+      })
+      .returning('id');
+
+    const [section] = await db('sections')
+      .insert({
+        course_id: course.id,
+        professor_id: professor.id,
+        capacity: 20,
+        room: 'T-101',
+        schedule: JSON.stringify({ days: [1], start_time: '09:00', end_time: '10:00', location: 'T-101' }),
+        is_active: true,
+        academic_term_id: term.id,
+        created_at: db.fn.now(),
+        updated_at: db.fn.now(),
+      })
+      .returning('id');
+
+    await request(app)
+      .post('/api/student/enrollments')
+      .set('Authorization', `Bearer ${studentToken}`)
+      .send({ section_id: section.id, academic_term_id: term.id })
+      .expect(403);
+
+    const [enrollment] = await db('enrollments')
+      .insert({
+        student_id: student.student_id,
+        section_id: section.id,
+        academic_term_id: term.id,
+        status: 'registered',
+        registered_at: db.fn.now(),
+        created_at: db.fn.now(),
+        updated_at: db.fn.now(),
+      })
+      .returning('id');
+
+    await request(app)
+      .delete(`/api/student/enrollments/${enrollment.id}`)
+      .set('Authorization', `Bearer ${studentToken}`)
+      .expect(400);
+  });
+
   test('professor write endpoints for grades and attendance work', async () => {
     const target = await db('users as u')
       .join('professors as p', 'p.user_id', 'u.id')

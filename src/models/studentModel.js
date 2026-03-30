@@ -44,7 +44,10 @@ export async function findSectionById(sectionId) {
       's.capacity',
       's.academic_term_id',
       's.is_active',
-      't.is_active as term_is_active'
+      't.is_active as term_is_active',
+      't.registration_starts_at',
+      't.registration_ends_at',
+      't.withdrawal_deadline'
     )
     .where('s.id', sectionId)
     .first();

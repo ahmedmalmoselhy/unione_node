@@ -67,6 +67,7 @@
 - ✅ Announcement management endpoints implemented (`GET /api/announcements`, `POST /api/announcements`, `PATCH/DELETE /api/announcements/:id`, `POST /api/announcements/:id/read`)
 - ✅ Notification center endpoints implemented (`GET /api/notifications`, `POST /api/notifications/read-all`, `POST /api/notifications/:id/read`, `DELETE /api/notifications/:id`)
 - ✅ Student export endpoints implemented (`GET /api/student/transcript`, `GET /api/student/transcript/pdf`, `GET /api/student/schedule`, `GET /api/student/schedule/ics`)
+- ✅ Advanced enrollment constraints implemented (term registration window checks and withdrawal deadline enforcement)
 
 ### Frontend Planning: ✅ **COMPLETE**
 - ✅ Tech stack selected (React + TypeScript + Vite)
@@ -100,6 +101,7 @@
 - [x] Implement initial organizational write endpoints with role/scope constraints
 - [x] Implement admin announcement and notification management endpoints
 - [x] Implement student transcript and schedule export endpoints (PDF/iCal)
+- [x] Implement advanced enrollment constraints (term window/deadlines)
 
 **Frontend Tasks**:
 - [ ] Create Vite + React project
@@ -182,10 +184,10 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 
 ### For Backend Developer
 1. Expand authorization policy coverage to student/professor/admin route groups
-2. Implement advanced enrollment constraints (term window/deadlines)
-3. Add webhook event dispatches on enrollment/grade/attendance changes
-4. Expand integration tests for announcement and notification endpoints
-5. Add integration tests for export endpoint edge cases (empty schedule/transcript)
+2. Add webhook event dispatches on enrollment/grade/attendance changes
+3. Expand integration tests for announcement and notification endpoints
+4. Add integration tests for export endpoint edge cases (empty schedule/transcript)
+5. Begin attendance summary and rating endpoints from the roadmap
 
 ### For Frontend Developer
 1. **Read**: QUICK_REFERENCE.md for fast lookup

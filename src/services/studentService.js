@@ -20,6 +20,14 @@ import {
 } from '../models/studentModel.js';
 import { buildScheduleIcs, buildTranscriptPdfBuffer } from '../utils/exportBuilders.js';
 
+function toDateOnly(value) {
+  if (!value) {
+    return null;
+  }
+
+  return new Date(value).toISOString().slice(0, 10);
+}
+
 export async function getStudentProfile(userId) {
   return findStudentProfileByUserId(userId);
 }
@@ -114,6 +122,20 @@ export async function enrollInSection(userId, { section_id: sectionId, academic_
     return { ok: false, code: 'section_not_found' };
   }
 
+  if (!section.term_is_active) {
+    const today = new Date().toISOString().slice(0, 10);
+    const registrationStartsAt = toDateOnly(section.registration_starts_at);
+    const registrationEndsAt = toDateOnly(section.registration_ends_at);
+
+    if (registrationStartsAt && today < registrationStartsAt) {
+      return { ok: false, code: 'registration_not_started' };
+    }
+
+    if (registrationEndsAt && today > registrationEndsAt) {
+      return { ok: false, code: 'registration_closed' };
+    }
+  }
+
   const existing = await findEnrollmentByStudentAndSection(student.id, sectionId);
   if (existing && existing.status !== 'dropped') {
     return { ok: false, code: 'already_enrolled' };
@@ -170,11 +192,21 @@ export async function dropEnrollment(userId, enrollmentId) {
     return { ok: false, code: 'not_droppable' };
   }
 
+  const section = await findSectionById(enrollment.section_id);
+  if (section && !section.term_is_active) {
+    const today = new Date().toISOString().slice(0, 10);
+    const withdrawalDeadline = toDateOnly(section.withdrawal_deadline);
+
+    if (withdrawalDeadline && today > withdrawalDeadline) {
+      return { ok: false, code: 'withdrawal_deadline_passed' };
+    }
+  }
+
   const dropped = await markEnrollmentDropped(enrollmentId);
 
-  const section = await findSectionById(dropped.section_id);
+  const droppedSection = await findSectionById(dropped.section_id);
   const registeredCount = await countRegisteredInSection(dropped.section_id);
-  if (section && registeredCount < Number(section.capacity)) {
+  if (droppedSection && registeredCount < Number(droppedSection.capacity)) {
     const next = await popNextWaitlistEntry(dropped.section_id);
     if (next) {
       const existing = await findEnrollmentByStudentAndSection(next.student_id, dropped.section_id);
