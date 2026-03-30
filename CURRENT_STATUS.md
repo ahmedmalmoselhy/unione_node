@@ -58,6 +58,7 @@
 - ✅ ESLint configured and lint script operational
 - ✅ Integration tests added for auth and organization authorization flows
 - ✅ Student portal core read endpoints implemented (`/api/student/profile`, `/api/student/enrollments`, `/api/student/grades`)
+- ✅ Professor portal core read endpoints implemented (`/api/professor/profile`, `/api/professor/sections`, `/api/professor/schedule`, section students/grades reads)
 
 ### Frontend Planning: ✅ **COMPLETE**
 - ✅ Tech stack selected (React + TypeScript + Vite)
@@ -171,7 +172,7 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 
 ### For Backend Developer
 1. Expand authorization policy coverage to student/professor/admin route groups
-2. Start professor portal endpoints (sections/grades/attendance)
+2. Add professor write endpoints (attendance sessions and grade submission)
 3. Add request rate-limiting policies per sensitive endpoint group
 4. Expand integration coverage to student/professor domain endpoints
 5. Implement student write actions (enroll/drop) with prerequisite and capacity checks
@@ -210,7 +211,7 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 
 **What's NOT Ready** (Current Gaps):
 - Authorization policy coverage across all route groups
-- Feature endpoints beyond auth, organization module, and initial student reads
+- Feature endpoints beyond auth, organization module, and core student/professor reads
 - Frontend project scaffold and UI implementation
 - Comprehensive integration and E2E test coverage
 
