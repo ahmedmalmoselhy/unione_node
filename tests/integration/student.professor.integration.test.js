@@ -363,6 +363,14 @@ describe('Student and professor domain integration', () => {
   });
 
   test('professor write endpoints for grades and attendance work', async () => {
+    const scheduleIcsRes = await request(app)
+      .get('/api/professor/schedule/ics')
+      .set('Authorization', `Bearer ${professorToken}`)
+      .expect('Content-Type', /text\/calendar/)
+      .expect(200);
+
+    expect(String(scheduleIcsRes.text)).toContain('BEGIN:VCALENDAR');
+
     const target = await db('users as u')
       .join('professors as p', 'p.user_id', 'u.id')
       .join('sections as s', 's.professor_id', 'p.id')

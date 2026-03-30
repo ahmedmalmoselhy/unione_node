@@ -3,6 +3,7 @@ import {
   getProfessorProfile,
   getProfessorSections,
   getProfessorSchedule,
+  getProfessorScheduleIcs,
   getProfessorSectionStudents,
   getProfessorSectionGrades,
   submitProfessorSectionGrades,
@@ -39,6 +40,17 @@ export async function schedule(req, res, next) {
   try {
     const data = await getProfessorSchedule(req.user.id, req.query);
     return res.status(200).json(success(data, 'Professor schedule fetched successfully', 200));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function scheduleIcs(req, res, next) {
+  try {
+    const icsContent = await getProfessorScheduleIcs(req.user.id, req.query);
+    res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="professor-schedule.ics"');
+    return res.status(200).send(icsContent);
   } catch (error) {
     return next(error);
   }

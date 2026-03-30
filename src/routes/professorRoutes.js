@@ -6,6 +6,7 @@ import {
   profile,
   sections,
   schedule,
+  scheduleIcs,
   sectionStudents,
   sectionGrades,
   submitSectionGrades,
@@ -32,6 +33,7 @@ router.use(authenticate, authorizeAny('professor'));
 router.get('/profile', profile);
 router.get('/sections', validate(professorSectionsQuerySchema, 'query'), sections);
 router.get('/schedule', validate(professorSectionsQuerySchema, 'query'), schedule);
+router.get('/schedule/ics', validate(professorSectionsQuerySchema, 'query'), scheduleIcs);
 router.get('/sections/:id/students', validate(professorSectionIdParamSchema, 'params'), sectionStudents);
 router.get('/sections/:id/grades', validate(professorSectionIdParamSchema, 'params'), sectionGrades);
 router.post('/sections/:id/grades', writeLimiter, validate(professorSectionIdParamSchema, 'params'), validate(submitSectionGradesSchema), submitSectionGrades);

@@ -69,6 +69,7 @@
 - ✅ Announcement management endpoints implemented (`GET /api/announcements`, `POST /api/announcements`, `PATCH/DELETE /api/announcements/:id`, `POST /api/announcements/:id/read`)
 - ✅ Notification center endpoints implemented (`GET /api/notifications`, `POST /api/notifications/read-all`, `POST /api/notifications/:id/read`, `DELETE /api/notifications/:id`)
 - ✅ Student export endpoints implemented (`GET /api/student/transcript`, `GET /api/student/transcript/pdf`, `GET /api/student/schedule`, `GET /api/student/schedule/ics`)
+- ✅ Professor schedule export endpoint implemented (`GET /api/professor/schedule/ics`)
 - ✅ Advanced enrollment constraints implemented (term registration window checks and withdrawal deadline enforcement)
 - ✅ Webhook dispatch pipeline implemented for enrollment/grade/attendance events with delivery logging and failure tracking
 - ✅ Webhook management APIs implemented (`GET/POST/PATCH/DELETE /api/webhooks`)
@@ -191,8 +192,8 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 1. Expand authorization policy coverage to student/professor/admin route groups
 2. Begin attendance summary and rating endpoints from the roadmap
 3. Add section-specific announcement endpoints for professor/student workflows
-4. Add professor schedule export endpoint (iCal) for parity
-5. Add notification preference controls (per event type)
+4. Add notification preference controls (per event type)
+5. Expand webhook retry/backoff and idempotency controls
 
 ### For Frontend Developer
 1. **Read**: QUICK_REFERENCE.md for fast lookup

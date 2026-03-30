@@ -13,6 +13,7 @@ import {
   listAttendanceRecordsBySession,
 } from '../models/professorModel.js';
 import { dispatchWebhookEvent } from './webhookService.js';
+import { buildScheduleIcs } from '../utils/exportBuilders.js';
 
 function computeGrade(total) {
   if (total >= 97) return { letter_grade: 'A+', grade_points: 4.0 };
@@ -40,6 +41,24 @@ export async function getProfessorSections(userId, { academic_term_id: academicT
 
 export async function getProfessorSchedule(userId, query) {
   return getProfessorSections(userId, query);
+}
+
+export async function getProfessorScheduleIcs(userId, query) {
+  const sections = await getProfessorSchedule(userId, query);
+
+  const scheduleRows = sections.map((row) => ({
+    section_id: row.id,
+    course_code: row.course_code,
+    course_name: row.course_name,
+    professor_first_name: 'Professor',
+    professor_last_name: String(userId),
+    section_room: row.room,
+    section_schedule: row.schedule,
+    term_starts_at: null,
+    term_ends_at: null,
+  }));
+
+  return buildScheduleIcs(scheduleRows, 'UniOne Professor Schedule');
 }
 
 export async function getProfessorSectionStudents(userId, sectionId) {
@@ -173,6 +192,7 @@ export default {
   getProfessorProfile,
   getProfessorSections,
   getProfessorSchedule,
+  getProfessorScheduleIcs,
   getProfessorSectionStudents,
   getProfessorSectionGrades,
   submitProfessorSectionGrades,
