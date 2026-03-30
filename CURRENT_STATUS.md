@@ -71,6 +71,7 @@
 - ✅ Student export endpoints implemented (`GET /api/student/transcript`, `GET /api/student/transcript/pdf`, `GET /api/student/schedule`, `GET /api/student/schedule/ics`)
 - ✅ Professor schedule export endpoint implemented (`GET /api/professor/schedule/ics`)
 - ✅ Student attendance and course rating endpoints implemented (`GET /api/student/attendance`, `GET/POST /api/student/ratings`)
+- ✅ Section announcement workflows implemented (`GET /api/student/sections/:sectionId/announcements`, `GET/POST /api/professor/sections/:id/announcements`)
 - ✅ Advanced enrollment constraints implemented (term registration window checks and withdrawal deadline enforcement)
 - ✅ Webhook dispatch pipeline implemented for enrollment/grade/attendance events with delivery logging and failure tracking
 - ✅ Webhook management APIs implemented (`GET/POST/PATCH/DELETE /api/webhooks`)
@@ -191,10 +192,10 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 
 ### For Backend Developer
 1. Expand authorization policy coverage to student/professor/admin route groups
-2. Add section-specific announcement endpoints for professor/student workflows
-3. Add notification preference controls (per event type)
-4. Expand webhook retry/backoff and idempotency controls
-5. Add admin analytics endpoints for ratings and attendance summaries
+2. Add notification preference controls (per event type)
+3. Expand webhook retry/backoff and idempotency controls
+4. Add admin analytics endpoints for ratings and attendance summaries
+5. Add attendance summary endpoint grouped by section/course
 
 ### For Frontend Developer
 1. **Read**: QUICK_REFERENCE.md for fast lookup

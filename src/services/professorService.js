@@ -14,6 +14,7 @@ import {
 } from '../models/professorModel.js';
 import { dispatchWebhookEvent } from './webhookService.js';
 import { buildScheduleIcs } from '../utils/exportBuilders.js';
+import announcementModel from '../models/announcementModel.js';
 
 function computeGrade(total) {
   if (total >= 97) return { letter_grade: 'A+', grade_points: 4.0 };
@@ -188,6 +189,30 @@ export async function updateProfessorAttendanceRecords(userId, sectionId, sessio
   return getProfessorAttendanceSessionDetails(userId, sectionId, sessionId);
 }
 
+export async function getProfessorSectionAnnouncements(userId, sectionId) {
+  const section = await findProfessorSectionById(userId, sectionId);
+  if (!section) {
+    return null;
+  }
+
+  return announcementModel.listSectionAnnouncementsForProfessor(userId, sectionId);
+}
+
+export async function createProfessorSectionAnnouncement(userId, sectionId, { title, body, published_at: publishedAt }) {
+  const section = await findProfessorSectionById(userId, sectionId);
+  if (!section) {
+    return null;
+  }
+
+  return announcementModel.createSectionAnnouncement({
+    sectionId,
+    authorId: userId,
+    title,
+    body,
+    publishedAt: publishedAt || null,
+  });
+}
+
 export default {
   getProfessorProfile,
   getProfessorSections,
@@ -200,4 +225,6 @@ export default {
   getProfessorAttendanceSessions,
   getProfessorAttendanceSessionDetails,
   updateProfessorAttendanceRecords,
+  getProfessorSectionAnnouncements,
+  createProfessorSectionAnnouncement,
 };

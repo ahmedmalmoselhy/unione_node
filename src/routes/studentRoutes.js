@@ -13,6 +13,7 @@ import {
   attendance,
   ratings,
   submitRating,
+  sectionAnnouncements,
   enroll,
   drop,
   waitlist,
@@ -27,6 +28,7 @@ import {
   studentEnrollSchema,
   studentEnrollmentIdParamSchema,
   studentWaitlistSectionParamSchema,
+  studentSectionIdParamSchema,
 } from '../validators/studentValidators.js';
 import { apiLimiter, writeLimiter } from '../middleware/rateLimiters.js';
 
@@ -47,6 +49,7 @@ router.get('/schedule/ics', validate(studentGradesQuerySchema, 'query'), schedul
 router.get('/attendance', validate(studentAttendanceQuerySchema, 'query'), attendance);
 router.get('/ratings', validate(studentRatingsQuerySchema, 'query'), ratings);
 router.post('/ratings', writeLimiter, validate(studentRatingCreateSchema), submitRating);
+router.get('/sections/:sectionId/announcements', validate(studentSectionIdParamSchema, 'params'), sectionAnnouncements);
 router.get('/waitlist', waitlist);
 router.delete('/waitlist/:sectionId', writeLimiter, validate(studentWaitlistSectionParamSchema, 'params'), removeWaitlist);
 

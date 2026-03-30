@@ -14,6 +14,8 @@ import {
   createAttendanceSession,
   attendanceSessionDetails,
   updateAttendanceSession,
+  sectionAnnouncements,
+  createSectionAnnouncement,
 } from '../controllers/professorController.js';
 import {
   professorSectionsQuerySchema,
@@ -22,6 +24,7 @@ import {
   submitSectionGradesSchema,
   createAttendanceSessionSchema,
   updateAttendanceSessionSchema,
+  createSectionAnnouncementSchema,
 } from '../validators/professorValidators.js';
 import { apiLimiter, writeLimiter } from '../middleware/rateLimiters.js';
 
@@ -37,6 +40,8 @@ router.get('/schedule/ics', validate(professorSectionsQuerySchema, 'query'), sch
 router.get('/sections/:id/students', validate(professorSectionIdParamSchema, 'params'), sectionStudents);
 router.get('/sections/:id/grades', validate(professorSectionIdParamSchema, 'params'), sectionGrades);
 router.post('/sections/:id/grades', writeLimiter, validate(professorSectionIdParamSchema, 'params'), validate(submitSectionGradesSchema), submitSectionGrades);
+router.get('/sections/:id/announcements', validate(professorSectionIdParamSchema, 'params'), sectionAnnouncements);
+router.post('/sections/:id/announcements', writeLimiter, validate(professorSectionIdParamSchema, 'params'), validate(createSectionAnnouncementSchema), createSectionAnnouncement);
 router.get('/sections/:id/attendance', validate(professorSectionIdParamSchema, 'params'), attendanceSessions);
 router.post('/sections/:id/attendance', writeLimiter, validate(professorSectionIdParamSchema, 'params'), validate(createAttendanceSessionSchema), createAttendanceSession);
 router.get('/sections/:id/attendance/:sessionId', validate(professorSectionAndSessionParamSchema, 'params'), attendanceSessionDetails);

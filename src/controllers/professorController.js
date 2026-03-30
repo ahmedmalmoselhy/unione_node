@@ -11,6 +11,8 @@ import {
   getProfessorAttendanceSessions,
   getProfessorAttendanceSessionDetails,
   updateProfessorAttendanceRecords,
+  getProfessorSectionAnnouncements,
+  createProfessorSectionAnnouncement,
 } from '../services/professorService.js';
 
 export async function profile(req, res, next) {
@@ -161,6 +163,36 @@ export async function updateAttendanceSession(req, res, next) {
     }
 
     return res.status(200).json(success(data, 'Attendance records updated successfully', 200));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function sectionAnnouncements(req, res, next) {
+  try {
+    const sectionId = Number(req.params.id);
+    const data = await getProfessorSectionAnnouncements(req.user.id, sectionId);
+
+    if (!data) {
+      return res.status(404).json(errorResponse('Section not found for professor', 404));
+    }
+
+    return res.status(200).json(success(data, 'Section announcements fetched successfully', 200));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function createSectionAnnouncement(req, res, next) {
+  try {
+    const sectionId = Number(req.params.id);
+    const data = await createProfessorSectionAnnouncement(req.user.id, sectionId, req.body);
+
+    if (!data) {
+      return res.status(404).json(errorResponse('Section not found for professor', 404));
+    }
+
+    return res.status(201).json(success(data, 'Section announcement created successfully', 201));
   } catch (error) {
     return next(error);
   }

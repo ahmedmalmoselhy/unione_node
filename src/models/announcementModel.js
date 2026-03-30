@@ -99,10 +99,74 @@ export async function softDeleteAnnouncementById(id) {
   return updated;
 }
 
+export async function listSectionAnnouncementsForStudent(userId, sectionId) {
+  return db('section_announcements as sa')
+    .join('sections as sec', 'sec.id', 'sa.section_id')
+    .join('enrollments as e', 'e.section_id', 'sec.id')
+    .join('students as s', 's.id', 'e.student_id')
+    .join('users as au', 'au.id', 'sa.author_id')
+    .where('s.user_id', userId)
+    .andWhere('sec.id', sectionId)
+    .select(
+      'sa.id',
+      'sa.section_id',
+      'sa.author_id',
+      'sa.title',
+      'sa.body',
+      'sa.published_at',
+      'sa.created_at',
+      'sa.updated_at',
+      'au.first_name as author_first_name',
+      'au.last_name as author_last_name'
+    )
+    .orderBy('sa.created_at', 'desc');
+}
+
+export async function listSectionAnnouncementsForProfessor(userId, sectionId) {
+  return db('section_announcements as sa')
+    .join('sections as sec', 'sec.id', 'sa.section_id')
+    .join('professors as p', 'p.id', 'sec.professor_id')
+    .join('users as au', 'au.id', 'sa.author_id')
+    .where('p.user_id', userId)
+    .andWhere('sec.id', sectionId)
+    .select(
+      'sa.id',
+      'sa.section_id',
+      'sa.author_id',
+      'sa.title',
+      'sa.body',
+      'sa.published_at',
+      'sa.created_at',
+      'sa.updated_at',
+      'au.first_name as author_first_name',
+      'au.last_name as author_last_name'
+    )
+    .orderBy('sa.created_at', 'desc');
+}
+
+export async function createSectionAnnouncement({ sectionId, authorId, title, body, publishedAt = null }) {
+  const [created] = await db('section_announcements')
+    .insert({
+      section_id: sectionId,
+      author_id: authorId,
+      title,
+      body,
+      published_at: publishedAt,
+      created_at: db.fn.now(),
+      updated_at: db.fn.now(),
+    })
+    .returning(['id', 'section_id', 'author_id', 'title', 'body', 'published_at', 'created_at', 'updated_at']);
+
+  return created;
+}
+
 export default {
   listVisibleAnnouncements,
   markAnnouncementRead,
   createAnnouncement,
   updateAnnouncementById,
   softDeleteAnnouncementById,
+  listSectionAnnouncementsForStudent,
+  listSectionAnnouncementsForProfessor,
+  createSectionAnnouncement,
 };

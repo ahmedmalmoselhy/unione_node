@@ -44,3 +44,9 @@ export const updateAttendanceSessionSchema = Joi.object({
     .min(1)
     .required(),
 });
+
+export const createSectionAnnouncementSchema = Joi.object({
+  title: Joi.string().max(255).required(),
+  body: Joi.string().required(),
+  published_at: Joi.date().iso().allow(null).optional(),
+});

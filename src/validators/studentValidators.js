@@ -36,3 +36,7 @@ export const studentEnrollmentIdParamSchema = Joi.object({
 export const studentWaitlistSectionParamSchema = Joi.object({
   sectionId: Joi.number().integer().positive().required(),
 });
+
+export const studentSectionIdParamSchema = Joi.object({
+  sectionId: Joi.number().integer().positive().required(),
+});

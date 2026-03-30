@@ -481,6 +481,22 @@ describe('Student and professor domain integration', () => {
       })
       .expect(200);
 
+    const announcementRes = await request(app)
+      .post(`/api/professor/sections/${target.section_id}/announcements`)
+      .set('Authorization', `Bearer ${professorToken}`)
+      .send({ title: 'Section Integration Update', body: 'Please review chapter 5 before next class.' })
+      .expect(201);
+
+    expect(Number(announcementRes.body.data.section_id)).toBe(Number(target.section_id));
+
+    const studentSectionAnnouncements = await request(app)
+      .get(`/api/student/sections/${target.section_id}/announcements`)
+      .set('Authorization', `Bearer ${studentToken}`)
+      .expect(200);
+
+    expect(Array.isArray(studentSectionAnnouncements.body.data)).toBe(true);
+    expect(studentSectionAnnouncements.body.data.length).toBeGreaterThan(0);
+
     let createSessionRes;
     let attempt = 1;
     while (!createSessionRes && attempt <= 30) {

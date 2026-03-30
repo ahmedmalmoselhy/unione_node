@@ -24,6 +24,7 @@ import {
 } from '../models/studentModel.js';
 import { buildScheduleIcs, buildTranscriptPdfBuffer } from '../utils/exportBuilders.js';
 import { dispatchWebhookEvent } from './webhookService.js';
+import announcementModel from '../models/announcementModel.js';
 
 function toDateOnly(value) {
   if (!value) {
@@ -139,6 +140,10 @@ export async function submitStudentRating(userId, { enrollment_id: enrollmentId,
   const saved = await upsertCourseRatingByEnrollmentId(enrollmentId, { rating, comment });
 
   return { ok: true, data: saved };
+}
+
+export async function getStudentSectionAnnouncements(userId, sectionId) {
+  return announcementModel.listSectionAnnouncementsForStudent(userId, sectionId);
 }
 
 export async function enrollInSection(userId, { section_id: sectionId, academic_term_id: academicTermId }) {
@@ -302,6 +307,7 @@ export default {
   getStudentAttendance,
   getStudentRatings,
   submitStudentRating,
+  getStudentSectionAnnouncements,
   enrollInSection,
   dropEnrollment,
   getStudentWaitlist,

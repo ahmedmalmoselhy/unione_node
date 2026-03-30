@@ -10,6 +10,7 @@ import {
   getStudentAttendance,
   getStudentRatings,
   submitStudentRating,
+  getStudentSectionAnnouncements,
   enrollInSection,
   dropEnrollment,
   getStudentWaitlist,
@@ -121,6 +122,16 @@ export async function submitRating(req, res, next) {
     }
 
     return res.status(201).json(success(result.data, 'Course rating submitted successfully', 201));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function sectionAnnouncements(req, res, next) {
+  try {
+    const sectionId = Number(req.params.sectionId);
+    const data = await getStudentSectionAnnouncements(req.user.id, sectionId);
+    return res.status(200).json(success(data, 'Section announcements fetched successfully', 200));
   } catch (error) {
     return next(error);
   }
