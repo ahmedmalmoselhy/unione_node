@@ -1,5 +1,6 @@
 import { verifyToken } from '../utils/jwt.js';
 import { findActiveById } from '../models/userModel.js';
+import { listActiveRolesByUserId } from '../models/roleModel.js';
 
 export default async function authenticate(req, res, next) {
   try {
@@ -24,7 +25,12 @@ export default async function authenticate(req, res, next) {
       });
     }
 
-    req.user = user;
+    const roles = await listActiveRolesByUserId(user.id);
+
+    req.user = {
+      ...user,
+      roles,
+    };
     req.auth = payload;
     return next();
   } catch (error) {

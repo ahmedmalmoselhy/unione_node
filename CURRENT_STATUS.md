@@ -49,7 +49,9 @@
 - ✅ Laravel-matching seeders created and verified
 - ✅ Authentication endpoints implemented (`/api/auth/login`, `/api/auth/logout`, `/api/auth/me`)
 - ✅ Auth middleware implemented for protected routes
+- ✅ Role-based authorization middleware implemented (`authorizeAny`)
 - ✅ Initial core model layer implemented (User, Role, University, Faculty, Department)
+- ✅ Protected organization endpoints implemented (`/api/organization/university`, `/api/organization/faculties`, `/api/organization/departments`)
 
 ### Frontend Planning: ✅ **COMPLETE**
 - ✅ Tech stack selected (React + TypeScript + Vite)
@@ -78,6 +80,8 @@
 - [x] Implement initial core models (User, Role, University, Faculty, Department)
 - [ ] Build full authentication system (login/logout/me done, token management pending)
 - [x] Create auth middleware and protected auth route handling
+- [x] Implement role-based authorization for initial protected modules
+- [x] Implement initial organizational read endpoints with access control
 
 **Frontend Tasks**:
 - [ ] Create Vite + React project
@@ -159,9 +163,9 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 ## 🎯 Next Immediate Steps
 
 ### For Backend Developer
-1. Implement role-based authorization middleware (admin/faculty/department scopes)
-2. Complete remaining auth endpoints (change password, token lifecycle)
-3. Add organizational endpoints using core models (university/faculties/departments)
+1. Complete remaining auth endpoints (change password, token lifecycle)
+2. Expand authorization policy coverage to additional route groups
+3. Add write endpoints for organizational management (create/update/deactivate)
 4. Add ESLint configuration so `npm run lint` becomes operational
 5. Add integration tests for auth and authorization flows
 
@@ -199,8 +203,8 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 
 **What's NOT Ready** (Current Gaps):
 - Full auth/token lifecycle implementation
-- Authorization policy coverage across route groups
-- Feature endpoints beyond auth and seed tooling
+- Authorization policy coverage across all route groups
+- Feature endpoints beyond auth, organization reads, and seed tooling
 - Frontend project scaffold and UI implementation
 - Integration and E2E test coverage
 

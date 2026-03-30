@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import errorHandler from './middleware/errorHandler.js';
 import notFound from './middleware/notFound.js';
 import authRoutes from './routes/authRoutes.js';
+import organizationRoutes from './routes/organizationRoutes.js';
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ app.get('/api', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/organization', organizationRoutes);
 
 // 404 handler
 app.use(notFound);
