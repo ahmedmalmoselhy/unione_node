@@ -550,7 +550,7 @@ CMD ["serve", "-s", "dist", "-l", "3000"]
 
 ### Environment Variables
 
-```
+```bash
 VITE_API_URL=http://localhost:3000/api
 VITE_APP_NAME=UniOne
 ```
