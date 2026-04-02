@@ -1,4 +1,5 @@
 import db from '../config/knex.js';
+import { applyCourseScope, assertCourseInScope, assertDepartmentInScope, buildAdminScope } from '../utils/adminScope.js';
 
 function applyCourseFilters(query, { search, departmentId, isActive, isElective, level } = {}) {
   if (search) {
@@ -52,7 +53,12 @@ async function attachCourseDepartments(connection, courseRows) {
   }));
 }
 
-export async function listCourses({ search, department_id: departmentId, is_active: isActive, is_elective: isElective, level, page = 1, limit = 25 } = {}) {
+export async function listCourses({ search, department_id: departmentId, is_active: isActive, is_elective: isElective, level, page = 1, limit = 25 } = {}, actor) {
+  const scope = buildAdminScope(actor);
+  if (departmentId) {
+    await assertDepartmentInScope(db, scope, departmentId);
+  }
+
   const safeLimit = Math.min(Number(limit) || 25, 200);
   const safePage = Math.max(Number(page) || 1, 1);
   const offset = (safePage - 1) * safeLimit;
@@ -72,9 +78,11 @@ export async function listCourses({ search, department_id: departmentId, is_acti
     'c.created_at',
     'c.updated_at'
   );
+  applyCourseScope(rowsQuery, scope, 'c.id');
   applyCourseFilters(rowsQuery, { search, departmentId, isActive, isElective, level });
 
   const totalQuery = db('courses as c');
+  applyCourseScope(totalQuery, scope, 'c.id');
   applyCourseFilters(totalQuery, { search, departmentId, isActive, isElective, level });
 
   const [rows, totalRow] = await Promise.all([
@@ -113,7 +121,9 @@ async function getCourseBaseById(connection, id) {
     .first();
 }
 
-export async function getCourseById(id, connection = db) {
+export async function getCourseById(id, actor, connection = db) {
+  const scope = buildAdminScope(actor);
+  await assertCourseInScope(connection, scope, id);
   const course = await getCourseBaseById(connection, id);
   if (!course) {
     return null;
@@ -153,8 +163,13 @@ async function syncCourseDepartments(connection, courseId, departmentIds, ownerD
   );
 }
 
-export async function createCourse(payload) {
+export async function createCourse(payload, actor) {
   return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
+    for (const departmentId of payload.department_ids || []) {
+      await assertDepartmentInScope(trx, scope, departmentId);
+    }
+
     const [created] = await trx('courses')
       .insert({
         code: payload.code,
@@ -173,12 +188,15 @@ export async function createCourse(payload) {
       .returning(['id']);
 
     await syncCourseDepartments(trx, created.id, payload.department_ids, payload.owner_department_id || null);
-    return getCourseById(created.id, trx);
+    return getCourseById(created.id, actor, trx);
   });
 }
 
-export async function updateCourse(id, payload) {
+export async function updateCourse(id, payload, actor) {
   return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
+    await assertCourseInScope(trx, scope, id);
+
     const current = await getCourseBaseById(trx, id);
     if (!current) {
       return null;
@@ -196,14 +214,19 @@ export async function updateCourse(id, payload) {
     }
 
     if (payload.department_ids) {
+      for (const departmentId of payload.department_ids) {
+        await assertDepartmentInScope(trx, scope, departmentId);
+      }
       await syncCourseDepartments(trx, id, payload.department_ids, payload.owner_department_id);
     }
 
-    return getCourseById(id, trx);
+    return getCourseById(id, actor, trx);
   });
 }
 
-export async function deleteCourse(id) {
+export async function deleteCourse(id, actor) {
+  const scope = buildAdminScope(actor);
+  await assertCourseInScope(db, scope, id);
   return db('courses').where({ id }).del();
 }
 

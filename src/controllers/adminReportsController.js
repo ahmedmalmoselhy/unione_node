@@ -23,7 +23,7 @@ export async function ratings(req, res, next) {
 
 export async function schedules(req, res, next) {
   try {
-    const data = await listSections(req.query);
+    const data = await listSections(req.query, req.user);
     return res.status(200).json(success(data, 'Schedule report fetched successfully', 200));
   } catch (error) {
     return next(error);

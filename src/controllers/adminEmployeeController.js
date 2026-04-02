@@ -3,7 +3,7 @@ import { listEmployees, getEmployeeById, createEmployee, updateEmployee, deleteE
 
 export async function index(req, res, next) {
   try {
-    const data = await listEmployees(req.query);
+    const data = await listEmployees(req.query, req.user);
     return res.status(200).json(success(data, 'Employees fetched successfully', 200));
   } catch (error) {
     return next(error);
@@ -13,7 +13,7 @@ export async function index(req, res, next) {
 export async function show(req, res, next) {
   try {
     const id = Number(req.params.id);
-    const data = await getEmployeeById(id);
+    const data = await getEmployeeById(id, req.user);
     if (!data) {
       return res.status(404).json(errorResponse('Employee not found', 404));
     }
@@ -25,7 +25,7 @@ export async function show(req, res, next) {
 
 export async function store(req, res, next) {
   try {
-    const data = await createEmployee(req.body);
+    const data = await createEmployee(req.body, req.user);
     return res.status(201).json(success(data, 'Employee created successfully', 201));
   } catch (error) {
     if (error.status) {
@@ -41,7 +41,7 @@ export async function store(req, res, next) {
 export async function update(req, res, next) {
   try {
     const id = Number(req.params.id);
-    const data = await updateEmployee(id, req.body);
+    const data = await updateEmployee(id, req.body, req.user);
     if (!data) {
       return res.status(404).json(errorResponse('Employee not found', 404));
     }
@@ -60,7 +60,7 @@ export async function update(req, res, next) {
 export async function destroy(req, res, next) {
   try {
     const id = Number(req.params.id);
-    const deleted = await deleteEmployee(id);
+    const deleted = await deleteEmployee(id, req.user);
     if (!deleted) {
       return res.status(404).json(errorResponse('Employee not found', 404));
     }

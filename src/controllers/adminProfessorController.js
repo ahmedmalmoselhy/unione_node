@@ -9,7 +9,7 @@ import {
 
 export async function index(req, res, next) {
   try {
-    const data = await listProfessors(req.query);
+    const data = await listProfessors(req.query, req.user);
     return res.status(200).json(success(data, 'Professors fetched successfully', 200));
   } catch (error) {
     return next(error);
@@ -19,7 +19,7 @@ export async function index(req, res, next) {
 export async function show(req, res, next) {
   try {
     const id = Number(req.params.id);
-    const data = await getProfessorDetailById(id);
+    const data = await getProfessorDetailById(id, req.user);
 
     if (!data) {
       return res.status(404).json(errorResponse('Professor not found', 404));
@@ -33,7 +33,7 @@ export async function show(req, res, next) {
 
 export async function store(req, res, next) {
   try {
-    const data = await createProfessor(req.body);
+    const data = await createProfessor(req.body, req.user);
     return res.status(201).json(success(data, 'Professor created successfully', 201));
   } catch (error) {
     if (error.status === 409 || error.code === '23505') {
@@ -51,7 +51,7 @@ export async function store(req, res, next) {
 export async function update(req, res, next) {
   try {
     const id = Number(req.params.id);
-    const data = await updateProfessor(id, req.body);
+    const data = await updateProfessor(id, req.body, req.user);
 
     if (!data) {
       return res.status(404).json(errorResponse('Professor not found', 404));
@@ -74,7 +74,7 @@ export async function update(req, res, next) {
 export async function destroy(req, res, next) {
   try {
     const id = Number(req.params.id);
-    const deleted = await deleteProfessor(id);
+    const deleted = await deleteProfessor(id, req.user);
 
     if (!deleted) {
       return res.status(404).json(errorResponse('Professor not found', 404));

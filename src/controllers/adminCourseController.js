@@ -3,7 +3,7 @@ import { listCourses, getCourseById, createCourse, updateCourse, deleteCourse } 
 
 export async function index(req, res, next) {
   try {
-    const data = await listCourses(req.query);
+    const data = await listCourses(req.query, req.user);
     return res.status(200).json(success(data, 'Courses fetched successfully', 200));
   } catch (error) {
     return next(error);
@@ -13,7 +13,7 @@ export async function index(req, res, next) {
 export async function show(req, res, next) {
   try {
     const id = Number(req.params.id);
-    const data = await getCourseById(id);
+    const data = await getCourseById(id, req.user);
     if (!data) {
       return res.status(404).json(errorResponse('Course not found', 404));
     }
@@ -26,7 +26,7 @@ export async function show(req, res, next) {
 
 export async function store(req, res, next) {
   try {
-    const data = await createCourse(req.body);
+    const data = await createCourse(req.body, req.user);
     return res.status(201).json(success(data, 'Course created successfully', 201));
   } catch (error) {
     if (error.status === 404) {
@@ -45,7 +45,7 @@ export async function store(req, res, next) {
 export async function update(req, res, next) {
   try {
     const id = Number(req.params.id);
-    const data = await updateCourse(id, req.body);
+    const data = await updateCourse(id, req.body, req.user);
     if (!data) {
       return res.status(404).json(errorResponse('Course not found', 404));
     }
@@ -68,7 +68,7 @@ export async function update(req, res, next) {
 export async function destroy(req, res, next) {
   try {
     const id = Number(req.params.id);
-    const deleted = await deleteCourse(id);
+    const deleted = await deleteCourse(id, req.user);
     if (!deleted) {
       return res.status(404).json(errorResponse('Course not found', 404));
     }

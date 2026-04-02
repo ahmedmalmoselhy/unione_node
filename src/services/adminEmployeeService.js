@@ -1,5 +1,6 @@
 import db from '../config/knex.js';
 import { hashPassword } from '../utils/password.js';
+import { applyFacultyDepartmentScope, assertDepartmentInScope, assertEmployeeInScope, buildAdminScope } from '../utils/adminScope.js';
 
 function baseEmployeeQuery(connection = db) {
   return connection('employees as e')
@@ -133,15 +134,22 @@ async function ensureEmployeeRole(connection, userId, departmentId) {
   });
 }
 
-export async function listEmployees({ search, department_id: departmentId, employment_type: employmentType, is_active: isActive, page = 1, limit = 25 } = {}) {
+export async function listEmployees({ search, department_id: departmentId, employment_type: employmentType, is_active: isActive, page = 1, limit = 25 } = {}, actor) {
+  const scope = buildAdminScope(actor);
+  if (departmentId) {
+    await assertDepartmentInScope(db, scope, departmentId);
+  }
+
   const safeLimit = Math.min(Number(limit) || 25, 200);
   const safePage = Math.max(Number(page) || 1, 1);
   const offset = (safePage - 1) * safeLimit;
 
   const rowsQuery = baseEmployeeQuery();
+  applyFacultyDepartmentScope(rowsQuery, scope, { facultyColumn: 'f.id', departmentColumn: 'e.department_id' });
   applyEmployeeFilters(rowsQuery, { search, departmentId, employmentType, isActive });
 
   const totalQuery = db('employees as e').join('users as u', 'u.id', 'e.user_id').leftJoin('departments as d', 'd.id', 'e.department_id').leftJoin('faculties as f', 'f.id', 'd.faculty_id');
+  applyFacultyDepartmentScope(totalQuery, scope, { facultyColumn: 'f.id', departmentColumn: 'e.department_id' });
   applyEmployeeFilters(totalQuery, { search, departmentId, employmentType, isActive });
 
   const [rows, totalRow] = await Promise.all([
@@ -155,12 +163,18 @@ export async function listEmployees({ search, department_id: departmentId, emplo
   };
 }
 
-export async function getEmployeeById(id, connection = db) {
-  return baseEmployeeQuery(connection).where('e.id', id).first();
+export async function getEmployeeById(id, actor, connection = db) {
+  const scope = buildAdminScope(actor);
+  const query = baseEmployeeQuery(connection).where('e.id', id);
+  applyFacultyDepartmentScope(query, scope, { facultyColumn: 'f.id', departmentColumn: 'e.department_id' });
+  return query.first();
 }
 
-export async function createEmployee(payload) {
+export async function createEmployee(payload, actor) {
   return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
+    await assertDepartmentInScope(trx, scope, payload.department_id);
+
     await assertUniqueEmployeeData(trx, payload);
     await assertDepartment(trx, payload.department_id);
 
@@ -199,21 +213,24 @@ export async function createEmployee(payload) {
       .returning(['id']);
 
     await ensureEmployeeRole(trx, user.id, payload.department_id);
-    return getEmployeeById(employee.id, trx);
+    return getEmployeeById(employee.id, actor, trx);
   });
 }
 
-export async function updateEmployee(id, payload) {
+export async function updateEmployee(id, payload, actor) {
   return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
+    await assertEmployeeInScope(trx, scope, id);
+
     const current = await trx('employees as e').join('users as u', 'u.id', 'e.user_id').where('e.id', id).select('e.id as employee_id', 'e.user_id', 'e.department_id').first();
     if (!current) {
       return null;
     }
 
     await assertUniqueEmployeeData(trx, payload, current.employee_id, current.user_id);
-    if (payload.department_id) {
-      await assertDepartment(trx, payload.department_id);
-    }
+    const nextDepartmentId = payload.department_id ?? current.department_id;
+    await assertDepartmentInScope(trx, scope, nextDepartmentId);
+    await assertDepartment(trx, nextDepartmentId);
 
     const userPatch = {};
     const employeePatch = {};
@@ -243,14 +260,15 @@ export async function updateEmployee(id, payload) {
       await trx('employees').where({ id }).update({ ...employeePatch, updated_at: trx.fn.now() });
     }
 
-    const nextDepartmentId = payload.department_id ?? current.department_id;
     await ensureEmployeeRole(trx, current.user_id, nextDepartmentId);
 
-    return getEmployeeById(id, trx);
+    return getEmployeeById(id, actor, trx);
   });
 }
 
-export async function deleteEmployee(id) {
+export async function deleteEmployee(id, actor) {
+  const scope = buildAdminScope(actor);
+  await assertEmployeeInScope(db, scope, id);
   return db('employees').where({ id }).del();
 }
 

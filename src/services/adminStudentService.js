@@ -1,5 +1,6 @@
 import db from '../config/knex.js';
 import { hashPassword } from '../utils/password.js';
+import { buildAdminScope, applyFacultyDepartmentScope, assertDepartmentInScope, assertFacultyInScope, assertStudentInScope } from '../utils/adminScope.js';
 
 function baseStudentQuery(connection = db) {
   return connection('students as s')
@@ -139,18 +140,28 @@ async function ensureStudentRole(connection, userId, facultyId, departmentId) {
   });
 }
 
-export async function listStudents({ search, faculty_id: facultyId, department_id: departmentId, enrollment_status: enrollmentStatus, is_active: isActive, page = 1, limit = 25 } = {}) {
+export async function listStudents({ search, faculty_id: facultyId, department_id: departmentId, enrollment_status: enrollmentStatus, is_active: isActive, page = 1, limit = 25 } = {}, actor) {
+  const scope = buildAdminScope(actor);
+  if (facultyId) {
+    assertFacultyInScope(scope, facultyId);
+  }
+  if (departmentId) {
+    await assertDepartmentInScope(db, scope, departmentId);
+  }
+
   const safeLimit = Math.min(Number(limit) || 25, 200);
   const safePage = Math.max(Number(page) || 1, 1);
   const offset = (safePage - 1) * safeLimit;
 
   const rowsQuery = baseStudentQuery();
+  applyFacultyDepartmentScope(rowsQuery, scope, { facultyColumn: 's.faculty_id', departmentColumn: 's.department_id' });
   applyStudentFilters(rowsQuery, { search, facultyId, departmentId, enrollmentStatus, isActive });
 
   const totalQuery = db('students as s')
     .join('users as u', 'u.id', 's.user_id')
     .leftJoin('faculties as f', 'f.id', 's.faculty_id')
     .leftJoin('departments as d', 'd.id', 's.department_id');
+  applyFacultyDepartmentScope(totalQuery, scope, { facultyColumn: 's.faculty_id', departmentColumn: 's.department_id' });
   applyStudentFilters(totalQuery, { search, facultyId, departmentId, enrollmentStatus, isActive });
 
   const [rows, totalRow] = await Promise.all([
@@ -164,12 +175,21 @@ export async function listStudents({ search, faculty_id: facultyId, department_i
   };
 }
 
-export async function getStudentById(id, connection = db) {
-  return baseStudentQuery(connection).where('s.id', id).first();
+export async function getStudentById(id, actor, connection = db) {
+  const scope = buildAdminScope(actor);
+  const query = baseStudentQuery(connection).where('s.id', id);
+  applyFacultyDepartmentScope(query, scope, { facultyColumn: 's.faculty_id', departmentColumn: 's.department_id' });
+  return query.first();
 }
 
-export async function createStudent(payload) {
+export async function createStudent(payload, actor) {
   return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
+    assertFacultyInScope(scope, payload.faculty_id);
+    if (payload.department_id) {
+      await assertDepartmentInScope(trx, scope, payload.department_id);
+    }
+
     await assertUniqueStudentData(trx, payload);
     await assertAcademicLinks(trx, payload.faculty_id, payload.department_id || null);
 
@@ -212,19 +232,29 @@ export async function createStudent(payload) {
 
     await ensureStudentRole(trx, user.id, payload.faculty_id, payload.department_id || null);
 
-    return getStudentById(student.id, trx);
+    return getStudentById(student.id, actor, trx);
   });
 }
 
-export async function updateStudent(id, payload) {
+export async function updateStudent(id, payload, actor) {
   return db.transaction(async (trx) => {
-    const current = await trx('students as s').join('users as u', 'u.id', 's.user_id').where('s.id', id).select('s.id as student_id', 's.user_id', 's.faculty_id', 's.department_id').first();
+    const scope = buildAdminScope(actor);
+    const currentQuery = trx('students as s').join('users as u', 'u.id', 's.user_id').where('s.id', id).select('s.id as student_id', 's.user_id', 's.faculty_id', 's.department_id');
+    applyFacultyDepartmentScope(currentQuery, scope, { facultyColumn: 's.faculty_id', departmentColumn: 's.department_id' });
+    const current = await currentQuery.first();
     if (!current) {
       return null;
     }
 
+    const targetFacultyId = payload.faculty_id ?? current.faculty_id;
+    const targetDepartmentId = payload.department_id ?? current.department_id;
+    assertFacultyInScope(scope, targetFacultyId);
+    if (targetDepartmentId) {
+      await assertDepartmentInScope(trx, scope, targetDepartmentId);
+    }
+
     await assertUniqueStudentData(trx, payload, current.student_id, current.user_id);
-    await assertAcademicLinks(trx, payload.faculty_id ?? current.faculty_id, payload.department_id ?? current.department_id);
+    await assertAcademicLinks(trx, targetFacultyId, targetDepartmentId);
 
     const userPatch = {};
     const studentPatch = {};
@@ -254,27 +284,23 @@ export async function updateStudent(id, payload) {
       await trx('students').where({ id }).update({ ...studentPatch, updated_at: trx.fn.now() });
     }
 
-    const nextFacultyId = payload.faculty_id ?? current.faculty_id;
-    const nextDepartmentId = payload.department_id ?? current.department_id;
+    const nextFacultyId = targetFacultyId;
+    const nextDepartmentId = targetDepartmentId;
     await ensureStudentRole(trx, current.user_id, nextFacultyId, nextDepartmentId);
 
-    return getStudentById(id, trx);
+    return getStudentById(id, actor, trx);
   });
 }
 
-export async function transferStudent(id, toDepartmentId, switchedBy, note = null) {
+export async function transferStudent(id, toDepartmentId, switchedBy, note = null, actor) {
   return db.transaction(async (trx) => {
-    const current = await trx('students as s').where('s.id', id).first();
+    const scope = buildAdminScope(actor);
+    const current = await assertStudentInScope(trx, scope, id);
     if (!current) {
       return null;
     }
 
-    const targetDepartment = await trx('departments').where({ id: toDepartmentId }).first();
-    if (!targetDepartment) {
-      const error = new Error('Target department not found');
-      error.status = 404;
-      throw error;
-    }
+    const targetDepartment = await assertDepartmentInScope(trx, scope, toDepartmentId);
 
     await trx('student_department_history').insert({
       student_id: id,
@@ -292,13 +318,14 @@ export async function transferStudent(id, toDepartmentId, switchedBy, note = nul
     });
 
     await ensureStudentRole(trx, current.user_id, targetDepartment.faculty_id, toDepartmentId);
-    return getStudentById(id, trx);
+    return getStudentById(id, actor, trx);
   });
 }
 
-export async function deleteStudent(id) {
+export async function deleteStudent(id, actor) {
   return db.transaction(async (trx) => {
-    const student = await trx('students').where({ id }).first();
+    const scope = buildAdminScope(actor);
+    const student = await assertStudentInScope(trx, scope, id);
     if (!student) {
       return false;
     }

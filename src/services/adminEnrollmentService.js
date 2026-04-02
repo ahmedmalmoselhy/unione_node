@@ -1,4 +1,5 @@
 import db from '../config/knex.js';
+import { applyFacultyDepartmentScope, assertSectionInScope, assertStudentInScope, buildAdminScope } from '../utils/adminScope.js';
 
 function baseEnrollmentQuery(connection = db) {
   return connection('enrollments as e')
@@ -82,12 +83,21 @@ async function assertEnrollmentRelations(connection, payload) {
   }
 }
 
-export async function listEnrollments({ search, student_id: studentId, section_id: sectionId, academic_term_id: academicTermId, status, page = 1, limit = 25 } = {}) {
+export async function listEnrollments({ search, student_id: studentId, section_id: sectionId, academic_term_id: academicTermId, status, page = 1, limit = 25 } = {}, actor) {
+  const scope = buildAdminScope(actor);
+  if (studentId) {
+    await assertStudentInScope(db, scope, studentId);
+  }
+  if (sectionId) {
+    await assertSectionInScope(db, scope, sectionId);
+  }
+
   const safeLimit = Math.min(Number(limit) || 25, 200);
   const safePage = Math.max(Number(page) || 1, 1);
   const offset = (safePage - 1) * safeLimit;
 
   const rowsQuery = baseEnrollmentQuery();
+  applyFacultyDepartmentScope(rowsQuery, scope, { facultyColumn: 's.faculty_id', departmentColumn: 's.department_id' });
   applyEnrollmentFilters(rowsQuery, { search, studentId, sectionId, academicTermId, status });
 
   const totalQuery = db('enrollments as e')
@@ -96,6 +106,7 @@ export async function listEnrollments({ search, student_id: studentId, section_i
     .join('sections as sec', 'sec.id', 'e.section_id')
     .join('courses as c', 'c.id', 'sec.course_id')
     .leftJoin('academic_terms as t', 't.id', 'e.academic_term_id');
+  applyFacultyDepartmentScope(totalQuery, scope, { facultyColumn: 's.faculty_id', departmentColumn: 's.department_id' });
   applyEnrollmentFilters(totalQuery, { search, studentId, sectionId, academicTermId, status });
 
   const [rows, totalRow] = await Promise.all([
@@ -109,12 +120,19 @@ export async function listEnrollments({ search, student_id: studentId, section_i
   };
 }
 
-export async function getEnrollmentById(id, connection = db) {
-  return baseEnrollmentQuery(connection).where('e.id', id).first();
+export async function getEnrollmentById(id, actor, connection = db) {
+  const scope = buildAdminScope(actor);
+  const query = baseEnrollmentQuery(connection).where('e.id', id);
+  applyFacultyDepartmentScope(query, scope, { facultyColumn: 's.faculty_id', departmentColumn: 's.department_id' });
+  return query.first();
 }
 
-export async function createEnrollment(payload) {
+export async function createEnrollment(payload, actor) {
   return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
+    await assertStudentInScope(trx, scope, payload.student_id);
+    await assertSectionInScope(trx, scope, payload.section_id);
+
     await assertEnrollmentRelations(trx, payload);
 
     const [created] = await trx('enrollments')
@@ -130,22 +148,28 @@ export async function createEnrollment(payload) {
       })
       .returning(['id']);
 
-    return getEnrollmentById(created.id, trx);
+    return getEnrollmentById(created.id, actor, trx);
   });
 }
 
-export async function updateEnrollment(id, payload) {
+export async function updateEnrollment(id, payload, actor) {
   return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
     const current = await trx('enrollments').where({ id }).first();
     if (!current) {
       return null;
     }
+
+    await assertStudentInScope(trx, scope, current.student_id);
+    await assertSectionInScope(trx, scope, current.section_id);
 
     const relationPayload = {
       student_id: payload.student_id ?? current.student_id,
       section_id: payload.section_id ?? current.section_id,
       academic_term_id: payload.academic_term_id ?? current.academic_term_id,
     };
+    await assertStudentInScope(trx, scope, relationPayload.student_id);
+    await assertSectionInScope(trx, scope, relationPayload.section_id);
     await assertEnrollmentRelations(trx, relationPayload);
 
     const patch = {};
@@ -156,11 +180,17 @@ export async function updateEnrollment(id, payload) {
     }
 
     await trx('enrollments').where({ id }).update({ ...patch, updated_at: trx.fn.now() });
-    return getEnrollmentById(id, trx);
+    return getEnrollmentById(id, actor, trx);
   });
 }
 
-export async function deleteEnrollment(id) {
+export async function deleteEnrollment(id, actor) {
+  const scope = buildAdminScope(actor);
+  const enrollment = await db('enrollments').where({ id }).first();
+  if (!enrollment) {
+    return 0;
+  }
+  await assertStudentInScope(db, scope, enrollment.student_id);
   return db('enrollments').where({ id }).del();
 }
 

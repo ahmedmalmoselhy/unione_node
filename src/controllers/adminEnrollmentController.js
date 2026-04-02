@@ -3,7 +3,7 @@ import { listEnrollments, getEnrollmentById, createEnrollment, updateEnrollment,
 
 export async function index(req, res, next) {
   try {
-    const data = await listEnrollments(req.query);
+    const data = await listEnrollments(req.query, req.user);
     return res.status(200).json(success(data, 'Enrollments fetched successfully', 200));
   } catch (error) {
     return next(error);
@@ -13,7 +13,7 @@ export async function index(req, res, next) {
 export async function show(req, res, next) {
   try {
     const id = Number(req.params.id);
-    const data = await getEnrollmentById(id);
+    const data = await getEnrollmentById(id, req.user);
     if (!data) {
       return res.status(404).json(errorResponse('Enrollment not found', 404));
     }
@@ -25,7 +25,7 @@ export async function show(req, res, next) {
 
 export async function store(req, res, next) {
   try {
-    const data = await createEnrollment(req.body);
+    const data = await createEnrollment(req.body, req.user);
     return res.status(201).json(success(data, 'Enrollment created successfully', 201));
   } catch (error) {
     if (error.status) {
@@ -41,7 +41,7 @@ export async function store(req, res, next) {
 export async function update(req, res, next) {
   try {
     const id = Number(req.params.id);
-    const data = await updateEnrollment(id, req.body);
+    const data = await updateEnrollment(id, req.body, req.user);
     if (!data) {
       return res.status(404).json(errorResponse('Enrollment not found', 404));
     }
@@ -60,7 +60,7 @@ export async function update(req, res, next) {
 export async function destroy(req, res, next) {
   try {
     const id = Number(req.params.id);
-    const deleted = await deleteEnrollment(id);
+    const deleted = await deleteEnrollment(id, req.user);
     if (!deleted) {
       return res.status(404).json(errorResponse('Enrollment not found', 404));
     }

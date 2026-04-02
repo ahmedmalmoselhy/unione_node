@@ -1,4 +1,5 @@
 import db from '../config/knex.js';
+import { applyCourseScope, assertCourseInScope, assertDepartmentInScope, assertSectionInScope, buildAdminScope } from '../utils/adminScope.js';
 
 function applySectionFilters(query, { search, courseId, professorId, academicTermId, isActive } = {}) {
   if (search) {
@@ -84,12 +85,18 @@ async function assertSectionRelations(connection, payload) {
   }
 }
 
-export async function listSections({ search, course_id: courseId, professor_id: professorId, academic_term_id: academicTermId, is_active: isActive, page = 1, limit = 25 } = {}) {
+export async function listSections({ search, course_id: courseId, professor_id: professorId, academic_term_id: academicTermId, is_active: isActive, page = 1, limit = 25 } = {}, actor) {
+  const scope = buildAdminScope(actor);
   const safeLimit = Math.min(Number(limit) || 25, 200);
   const safePage = Math.max(Number(page) || 1, 1);
   const offset = (safePage - 1) * safeLimit;
 
+  if (courseId) {
+    await assertCourseInScope(db, scope, courseId);
+  }
+
   const rowsQuery = baseSectionQuery();
+  applyCourseScope(rowsQuery, scope, 's.course_id');
   applySectionFilters(rowsQuery, { search, courseId, professorId, academicTermId, isActive });
 
   const totalQuery = db('sections as s')
@@ -97,6 +104,7 @@ export async function listSections({ search, course_id: courseId, professor_id: 
     .join('professors as p', 'p.id', 's.professor_id')
     .join('users as pu', 'pu.id', 'p.user_id')
     .leftJoin('academic_terms as t', 't.id', 's.academic_term_id');
+  applyCourseScope(totalQuery, scope, 's.course_id');
   applySectionFilters(totalQuery, { search, courseId, professorId, academicTermId, isActive });
 
   const [rows, totalRow] = await Promise.all([
@@ -114,12 +122,22 @@ export async function listSections({ search, course_id: courseId, professor_id: 
   };
 }
 
-export async function getSectionById(id, connection = db) {
+export async function getSectionById(id, actor, connection = db) {
+  const scope = buildAdminScope(actor);
+  await assertSectionInScope(connection, scope, id);
   return baseSectionQuery(connection).where('s.id', id).first();
 }
 
-export async function createSection(payload) {
+export async function createSection(payload, actor) {
   return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
+    await assertCourseInScope(trx, scope, payload.course_id);
+
+    const professor = await trx('professors').where({ id: payload.professor_id }).first();
+    if (professor?.department_id) {
+      await assertDepartmentInScope(trx, scope, professor.department_id);
+    }
+
     await assertSectionRelations(trx, payload);
 
     const [created] = await trx('sections')
@@ -136,22 +154,31 @@ export async function createSection(payload) {
       })
       .returning(['id']);
 
-    return getSectionById(created.id, trx);
+    return getSectionById(created.id, actor, trx);
   });
 }
 
-export async function updateSection(id, payload) {
+export async function updateSection(id, payload, actor) {
   return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
     const current = await trx('sections').where({ id }).first();
     if (!current) {
       return null;
     }
+    await assertSectionInScope(trx, scope, id);
 
     const relationPayload = {
       course_id: payload.course_id ?? current.course_id,
       professor_id: payload.professor_id ?? current.professor_id,
       academic_term_id: payload.academic_term_id ?? current.academic_term_id,
     };
+    await assertCourseInScope(trx, scope, relationPayload.course_id);
+
+    const professor = await trx('professors').where({ id: relationPayload.professor_id }).first();
+    if (professor?.department_id) {
+      await assertDepartmentInScope(trx, scope, professor.department_id);
+    }
+
     await assertSectionRelations(trx, relationPayload);
 
     const patch = {};
@@ -162,11 +189,13 @@ export async function updateSection(id, payload) {
     }
 
     await trx('sections').where({ id }).update({ ...patch, updated_at: trx.fn.now() });
-    return getSectionById(id, trx);
+    return getSectionById(id, actor, trx);
   });
 }
 
-export async function deleteSection(id) {
+export async function deleteSection(id, actor) {
+  const scope = buildAdminScope(actor);
+  await assertSectionInScope(db, scope, id);
   return db('sections').where({ id }).del();
 }
 

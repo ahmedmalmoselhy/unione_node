@@ -3,7 +3,7 @@ import { listGrades, getGradeById, createGrade, updateGrade, deleteGrade } from 
 
 export async function index(req, res, next) {
   try {
-    const data = await listGrades(req.query);
+    const data = await listGrades(req.query, req.user);
     return res.status(200).json(success(data, 'Grades fetched successfully', 200));
   } catch (error) {
     return next(error);
@@ -13,7 +13,7 @@ export async function index(req, res, next) {
 export async function show(req, res, next) {
   try {
     const id = Number(req.params.id);
-    const data = await getGradeById(id);
+    const data = await getGradeById(id, req.user);
     if (!data) {
       return res.status(404).json(errorResponse('Grade not found', 404));
     }
@@ -25,7 +25,7 @@ export async function show(req, res, next) {
 
 export async function store(req, res, next) {
   try {
-    const data = await createGrade(req.body, req.user.id);
+    const data = await createGrade(req.body, req.user.id, req.user);
     return res.status(201).json(success(data, 'Grade created successfully', 201));
   } catch (error) {
     if (error.status) {
@@ -41,7 +41,7 @@ export async function store(req, res, next) {
 export async function update(req, res, next) {
   try {
     const id = Number(req.params.id);
-    const data = await updateGrade(id, req.body, req.user.id);
+    const data = await updateGrade(id, req.body, req.user.id, req.user);
     if (!data) {
       return res.status(404).json(errorResponse('Grade not found', 404));
     }
@@ -54,7 +54,7 @@ export async function update(req, res, next) {
 export async function destroy(req, res, next) {
   try {
     const id = Number(req.params.id);
-    const deleted = await deleteGrade(id);
+    const deleted = await deleteGrade(id, req.user);
     if (!deleted) {
       return res.status(404).json(errorResponse('Grade not found', 404));
     }

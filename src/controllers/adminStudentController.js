@@ -3,7 +3,7 @@ import { listStudents, getStudentById, createStudent, updateStudent, transferStu
 
 export async function index(req, res, next) {
   try {
-    const data = await listStudents(req.query);
+    const data = await listStudents(req.query, req.user);
     return res.status(200).json(success(data, 'Students fetched successfully', 200));
   } catch (error) {
     return next(error);
@@ -13,7 +13,7 @@ export async function index(req, res, next) {
 export async function show(req, res, next) {
   try {
     const id = Number(req.params.id);
-    const data = await getStudentById(id);
+    const data = await getStudentById(id, req.user);
     if (!data) {
       return res.status(404).json(errorResponse('Student not found', 404));
     }
@@ -25,7 +25,7 @@ export async function show(req, res, next) {
 
 export async function store(req, res, next) {
   try {
-    const data = await createStudent(req.body);
+    const data = await createStudent(req.body, req.user);
     return res.status(201).json(success(data, 'Student created successfully', 201));
   } catch (error) {
     if (error.status) {
@@ -41,7 +41,7 @@ export async function store(req, res, next) {
 export async function update(req, res, next) {
   try {
     const id = Number(req.params.id);
-    const data = await updateStudent(id, req.body);
+    const data = await updateStudent(id, req.body, req.user);
     if (!data) {
       return res.status(404).json(errorResponse('Student not found', 404));
     }
@@ -60,7 +60,7 @@ export async function update(req, res, next) {
 export async function transfer(req, res, next) {
   try {
     const id = Number(req.params.id);
-    const data = await transferStudent(id, req.body.to_department_id, req.user.id, req.body.note);
+    const data = await transferStudent(id, req.body.to_department_id, req.user.id, req.body.note, req.user);
     if (!data) {
       return res.status(404).json(errorResponse('Student not found', 404));
     }
@@ -76,7 +76,7 @@ export async function transfer(req, res, next) {
 export async function destroy(req, res, next) {
   try {
     const id = Number(req.params.id);
-    const deleted = await deleteStudent(id);
+    const deleted = await deleteStudent(id, req.user);
     if (!deleted) {
       return res.status(404).json(errorResponse('Student not found', 404));
     }

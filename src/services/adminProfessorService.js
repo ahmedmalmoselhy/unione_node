@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import db from '../config/knex.js';
 import { hashPassword } from '../utils/password.js';
+import { applyFacultyDepartmentScope, assertDepartmentInScope, buildAdminScope } from '../utils/adminScope.js';
 
 const professorSelectColumns = [
   'p.id as professor_id',
@@ -122,7 +123,17 @@ async function assertProfessorDepartment(trx, departmentId) {
   return department;
 }
 
-export async function listProfessors({ search, faculty_id: facultyId, department_id: departmentId, academic_rank: academicRank, is_active: isActive, limit = 25, page = 1 } = {}) {
+export async function listProfessors({ search, faculty_id: facultyId, department_id: departmentId, academic_rank: academicRank, is_active: isActive, limit = 25, page = 1 } = {}, actor) {
+  const scope = buildAdminScope(actor);
+  if (facultyId && !scope.isGlobal && !scope.facultyIds.has(Number(facultyId))) {
+    const error = new Error('Forbidden: insufficient scope for this faculty');
+    error.status = 403;
+    throw error;
+  }
+  if (departmentId) {
+    await assertDepartmentInScope(db, scope, departmentId);
+  }
+
   const safeLimit = Math.min(Number(limit) || 25, 200);
   const safePage = Math.max(Number(page) || 1, 1);
   const offset = (safePage - 1) * safeLimit;
@@ -131,6 +142,7 @@ export async function listProfessors({ search, faculty_id: facultyId, department
     .join('users as u', 'u.id', 'p.user_id')
     .leftJoin('departments as d', 'd.id', 'p.department_id')
     .leftJoin('faculties as f', 'f.id', 'd.faculty_id');
+  applyFacultyDepartmentScope(baseQuery, scope, { facultyColumn: 'd.faculty_id', departmentColumn: 'p.department_id' });
 
   applyProfessorFilters(baseQuery, { search, facultyId, departmentId, academicRank, isActive });
 
@@ -138,6 +150,7 @@ export async function listProfessors({ search, faculty_id: facultyId, department
     .join('users as u', 'u.id', 'p.user_id')
     .leftJoin('departments as d', 'd.id', 'p.department_id')
     .leftJoin('faculties as f', 'f.id', 'd.faculty_id');
+  applyFacultyDepartmentScope(totalQuery, scope, { facultyColumn: 'd.faculty_id', departmentColumn: 'p.department_id' });
   applyProfessorFilters(totalQuery, { search, facultyId, departmentId, academicRank, isActive });
 
   const [rows, totalRow] = await Promise.all([
@@ -192,14 +205,17 @@ async function loadProfessorSections(connection, professorId) {
     .orderBy('s.id', 'desc');
 }
 
-export async function getProfessorDetailById(id, connection = db) {
-  const professor = await connection('professors as p')
+export async function getProfessorDetailById(id, actor, connection = db) {
+  const scope = buildAdminScope(actor);
+  const query = connection('professors as p')
     .join('users as u', 'u.id', 'p.user_id')
     .leftJoin('departments as d', 'd.id', 'p.department_id')
     .leftJoin('faculties as f', 'f.id', 'd.faculty_id')
     .select(professorSelectColumns)
-    .where('p.id', id)
-    .first();
+    .where('p.id', id);
+  applyFacultyDepartmentScope(query, scope, { facultyColumn: 'd.faculty_id', departmentColumn: 'p.department_id' });
+
+  const professor = await query.first();
 
   if (!professor) {
     return null;
@@ -242,8 +258,11 @@ async function assertUniqueProfessorData(trx, payload, professorId = null, userI
   }
 }
 
-export async function createProfessor(payload) {
+export async function createProfessor(payload, actor) {
   return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
+    await assertDepartmentInScope(trx, scope, payload.department_id);
+
     await assertUniqueProfessorData(trx, payload);
     const department = await assertProfessorDepartment(trx, payload.department_id);
     if (!department) {
@@ -287,26 +306,33 @@ export async function createProfessor(payload) {
 
     await ensureProfessorRole(trx, user.id);
 
-    return getProfessorDetailById(professor.id, trx);
+    return getProfessorDetailById(professor.id, actor, trx);
   });
 }
 
-export async function updateProfessor(id, payload) {
+export async function updateProfessor(id, payload, actor) {
   return db.transaction(async (trx) => {
-    const professor = await trx('professors as p').join('users as u', 'u.id', 'p.user_id').where('p.id', id).select('p.id as professor_id', 'p.user_id').first();
+    const scope = buildAdminScope(actor);
+    const professorQuery = trx('professors as p')
+      .join('users as u', 'u.id', 'p.user_id')
+      .leftJoin('departments as d', 'd.id', 'p.department_id')
+      .select('p.id as professor_id', 'p.user_id', 'p.department_id', 'd.faculty_id')
+      .where('p.id', id);
+    applyFacultyDepartmentScope(professorQuery, scope, { facultyColumn: 'd.faculty_id', departmentColumn: 'p.department_id' });
+    const professor = await professorQuery.first();
     if (!professor) {
       return null;
     }
 
     await assertUniqueProfessorData(trx, payload, professor.professor_id, professor.user_id);
 
-    if (payload.department_id) {
-      const department = await assertProfessorDepartment(trx, payload.department_id);
-      if (!department) {
-        const error = new Error('Department not found');
-        error.status = 404;
-        throw error;
-      }
+    const nextDepartmentId = payload.department_id ?? professor.department_id;
+    await assertDepartmentInScope(trx, scope, nextDepartmentId);
+    const department = await assertProfessorDepartment(trx, nextDepartmentId);
+    if (!department) {
+      const error = new Error('Department not found');
+      error.status = 404;
+      throw error;
     }
 
     const userUpdates = {};
@@ -355,13 +381,19 @@ export async function updateProfessor(id, payload) {
       await ensureProfessorRole(trx, professor.user_id);
     }
 
-    return getProfessorDetailById(id, trx);
+    return getProfessorDetailById(id, actor, trx);
   });
 }
 
-export async function deleteProfessor(id) {
+export async function deleteProfessor(id, actor) {
   return db.transaction(async (trx) => {
-    const professor = await trx('professors').where({ id }).first();
+    const scope = buildAdminScope(actor);
+    const professorQuery = trx('professors as p')
+      .leftJoin('departments as d', 'd.id', 'p.department_id')
+      .select('p.id', 'p.user_id', 'p.department_id', 'd.faculty_id')
+      .where('p.id', id);
+    applyFacultyDepartmentScope(professorQuery, scope, { facultyColumn: 'd.faculty_id', departmentColumn: 'p.department_id' });
+    const professor = await professorQuery.first();
     if (!professor) {
       return false;
     }

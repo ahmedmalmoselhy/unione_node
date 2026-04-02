@@ -1,4 +1,5 @@
 import db from '../config/knex.js';
+import { applyFacultyDepartmentScope, assertStudentInScope, buildAdminScope } from '../utils/adminScope.js';
 
 function baseGradeQuery(connection = db) {
   return connection('grades as g')
@@ -75,12 +76,27 @@ async function assertEnrollment(connection, enrollmentId) {
   return row;
 }
 
-export async function listGrades({ search, enrollment_id: enrollmentId, student_id: studentId, section_id: sectionId, academic_term_id: academicTermId, page = 1, limit = 25 } = {}) {
+async function assertEnrollmentInScope(connection, scope, enrollmentId) {
+  const enrollment = await assertEnrollment(connection, enrollmentId);
+  await assertStudentInScope(connection, scope, enrollment.student_id);
+  return enrollment;
+}
+
+export async function listGrades({ search, enrollment_id: enrollmentId, student_id: studentId, section_id: sectionId, academic_term_id: academicTermId, page = 1, limit = 25 } = {}, actor) {
+  const scope = buildAdminScope(actor);
+  if (studentId) {
+    await assertStudentInScope(db, scope, studentId);
+  }
+  if (enrollmentId) {
+    await assertEnrollmentInScope(db, scope, enrollmentId);
+  }
+
   const safeLimit = Math.min(Number(limit) || 25, 200);
   const safePage = Math.max(Number(page) || 1, 1);
   const offset = (safePage - 1) * safeLimit;
 
   const rowsQuery = baseGradeQuery();
+  applyFacultyDepartmentScope(rowsQuery, scope, { facultyColumn: 's.faculty_id', departmentColumn: 's.department_id' });
   applyGradeFilters(rowsQuery, { search, enrollmentId, studentId, sectionId, academicTermId });
 
   const totalQuery = db('grades as g')
@@ -90,6 +106,7 @@ export async function listGrades({ search, enrollment_id: enrollmentId, student_
     .join('sections as sec', 'sec.id', 'e.section_id')
     .join('courses as c', 'c.id', 'sec.course_id')
     .leftJoin('academic_terms as t', 't.id', 'e.academic_term_id');
+  applyFacultyDepartmentScope(totalQuery, scope, { facultyColumn: 's.faculty_id', departmentColumn: 's.department_id' });
   applyGradeFilters(totalQuery, { search, enrollmentId, studentId, sectionId, academicTermId });
 
   const [rows, totalRow] = await Promise.all([
@@ -103,13 +120,17 @@ export async function listGrades({ search, enrollment_id: enrollmentId, student_
   };
 }
 
-export async function getGradeById(id, connection = db) {
-  return baseGradeQuery(connection).where('g.id', id).first();
+export async function getGradeById(id, actor, connection = db) {
+  const scope = buildAdminScope(actor);
+  const query = baseGradeQuery(connection).where('g.id', id);
+  applyFacultyDepartmentScope(query, scope, { facultyColumn: 's.faculty_id', departmentColumn: 's.department_id' });
+  return query.first();
 }
 
-export async function createGrade(payload, gradedBy) {
+export async function createGrade(payload, gradedBy, actor) {
   return db.transaction(async (trx) => {
-    await assertEnrollment(trx, payload.enrollment_id);
+    const scope = buildAdminScope(actor);
+    await assertEnrollmentInScope(trx, scope, payload.enrollment_id);
 
     const [grade] = await trx('grades')
       .insert({
@@ -127,16 +148,19 @@ export async function createGrade(payload, gradedBy) {
       })
       .returning(['id']);
 
-    return getGradeById(grade.id, trx);
+    return getGradeById(grade.id, actor, trx);
   });
 }
 
-export async function updateGrade(id, payload, gradedBy) {
+export async function updateGrade(id, payload, gradedBy, actor) {
   return db.transaction(async (trx) => {
     const current = await trx('grades').where({ id }).first();
     if (!current) {
       return null;
     }
+
+    const scope = buildAdminScope(actor);
+    await assertEnrollmentInScope(trx, scope, current.enrollment_id);
 
     const patch = {};
     for (const key of ['midterm', 'final', 'coursework', 'total', 'letter_grade', 'grade_points', 'graded_at']) {
@@ -147,11 +171,17 @@ export async function updateGrade(id, payload, gradedBy) {
     patch.graded_by = gradedBy;
 
     await trx('grades').where({ id }).update({ ...patch, updated_at: trx.fn.now() });
-    return getGradeById(id, trx);
+    return getGradeById(id, actor, trx);
   });
 }
 
-export async function deleteGrade(id) {
+export async function deleteGrade(id, actor) {
+  const scope = buildAdminScope(actor);
+  const grade = await db('grades').where({ id }).first();
+  if (!grade) {
+    return 0;
+  }
+  await assertEnrollmentInScope(db, scope, grade.enrollment_id);
   return db('grades').where({ id }).del();
 }
 
