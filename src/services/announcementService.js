@@ -3,6 +3,7 @@ import announcementModel from '../models/announcementModel.js';
 
 const VALID_VISIBILITY = new Set(['university', 'faculty', 'department', 'section']);
 const VALID_TYPE = new Set(['general', 'academic', 'administrative', 'urgent']);
+const ANNOUNCEMENT_WRITE_ROLES = new Set(['admin', 'university_admin', 'faculty_admin', 'department_admin']);
 
 function ensureRole(roles, allowed) {
   if (!Array.isArray(roles) || !roles.some((role) => allowed.has(role.name))) {
@@ -59,7 +60,7 @@ export async function markAnnouncementAsRead(user, announcementId) {
 }
 
 export async function createAnnouncement(user, payload) {
-  ensureRole(user.roles, new Set(['admin', 'super_admin']));
+  ensureRole(user.roles, ANNOUNCEMENT_WRITE_ROLES);
 
   const normalized = normalizePayload(payload);
   normalized.author_id = user.id;
@@ -72,7 +73,7 @@ export async function createAnnouncement(user, payload) {
 }
 
 export async function updateAnnouncement(user, id, payload) {
-  ensureRole(user.roles, new Set(['admin', 'super_admin']));
+  ensureRole(user.roles, ANNOUNCEMENT_WRITE_ROLES);
 
   const normalized = normalizePayload(payload);
 
@@ -88,7 +89,7 @@ export async function updateAnnouncement(user, id, payload) {
 }
 
 export async function deleteAnnouncement(user, id) {
-  ensureRole(user.roles, new Set(['admin', 'super_admin']));
+  ensureRole(user.roles, ANNOUNCEMENT_WRITE_ROLES);
 
   const deleted = await announcementModel.softDeleteAnnouncementById(id);
 
