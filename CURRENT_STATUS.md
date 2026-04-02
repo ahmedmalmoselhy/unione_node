@@ -110,6 +110,7 @@
 - ✅ Acting-user scope checks enforced on admin assignment grant/revoke endpoints (faculty admin, department admin, department head)
 - ✅ Announcement write authorization aligned with scoped admin roles (`admin`, `university_admin`, `faculty_admin`, `department_admin`)
 - ✅ Additional business-rule guards added for admin student transfers and enrollment create/update flows
+- ✅ Integration test coverage added for scoped faculty-admin assignment blocking
 
 ### Frontend Planning: ✅ **COMPLETE**
 
@@ -241,7 +242,7 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 1. Mirror the remaining Laravel dashboard/admin CRUD, import/export, locale, audit-log, and stats routes in Node
 2. Continue expanding policy coverage and scope-specific access checks as those routes are added
 3. Backfill integration tests for the new admin CRUD/assignment/report route families
-4. Expand integration test coverage for scope leakage and new admin hardening rules
+4. Validate integration coverage once the local PostgreSQL test database is available
 
 ### For Frontend Developer
 

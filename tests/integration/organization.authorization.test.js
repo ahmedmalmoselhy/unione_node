@@ -10,6 +10,8 @@ describe('Organization authorization integration', () => {
   let scopedFacultyId;
   let scopedFacultyAdminEmail;
   let scopedFacultyAdminUserId;
+  let anotherFacultyId;
+  let targetUserId;
 
   beforeAll(async () => {
     const adminLogin = await request(app)
@@ -23,7 +25,7 @@ describe('Organization authorization integration', () => {
       .join('role_user as ru', 'ru.user_id', 'u.id')
       .join('roles as r', 'r.id', 'ru.role_id')
       .where('r.name', 'student')
-      .select('u.email')
+      .select('u.id', 'u.email')
       .first();
 
     const studentLogin = await request(app)
@@ -32,9 +34,23 @@ describe('Organization authorization integration', () => {
       .expect(200);
 
     studentToken = studentLogin.body.data.token;
+    targetUserId = student.id;
 
     const faculty = await db('faculties').select('id').orderBy('id', 'asc').first();
     scopedFacultyId = faculty.id;
+
+    const createdFaculty = await request(app)
+      .post('/api/organization/faculties')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        name: `Scope Test Faculty ${Date.now()}`,
+        name_ar: `Scope Test Faculty ${Date.now()}`,
+        code: `SCF-${Date.now()}`,
+        enrollment_type: 'immediate',
+      })
+      .expect(201);
+
+    anotherFacultyId = createdFaculty.body.data.id;
 
     const role = await db('roles').where({ name: 'faculty_admin' }).first('id');
 
@@ -67,6 +83,10 @@ describe('Organization authorization integration', () => {
   });
 
   afterAll(async () => {
+    if (anotherFacultyId) {
+      await db('faculties').where({ id: anotherFacultyId }).del();
+    }
+
     if (scopedFacultyAdminUserId) {
       await db('role_user').where({ user_id: scopedFacultyAdminUserId }).del();
       await db('users').where({ id: scopedFacultyAdminUserId }).del();
@@ -151,5 +171,20 @@ describe('Organization authorization integration', () => {
         })
         .expect(403);
     }
+  });
+
+  test('faculty_admin cannot assign admin role outside scoped faculty', async () => {
+    const facultyAdminLogin = await request(app)
+      .post('/api/auth/login')
+      .send({ email: scopedFacultyAdminEmail, password: '241996' })
+      .expect(200);
+
+    const facultyAdminToken = facultyAdminLogin.body.data.token;
+
+    await request(app)
+      .post(`/api/admin/faculties/${anotherFacultyId}/assign-admin`)
+      .set('Authorization', `Bearer ${facultyAdminToken}`)
+      .send({ user_id: targetUserId })
+      .expect(403);
   });
 });

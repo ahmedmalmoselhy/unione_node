@@ -1,4 +1,7 @@
 import Joi from 'joi';
+import { entityIdParamSchema } from './organizationValidators.js';
+
+export { entityIdParamSchema };
 
 export const adminAnalyticsQuerySchema = Joi.object({
   academic_term_id: Joi.number().integer().positive().optional(),
