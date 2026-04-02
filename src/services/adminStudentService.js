@@ -300,6 +300,18 @@ export async function transferStudent(id, toDepartmentId, switchedBy, note = nul
       return null;
     }
 
+    if (Number(current.department_id) === Number(toDepartmentId)) {
+      const error = new Error('Student is already assigned to the target department');
+      error.status = 422;
+      throw error;
+    }
+
+    if (current.enrollment_status === 'graduated') {
+      const error = new Error('Graduated students cannot be transferred');
+      error.status = 422;
+      throw error;
+    }
+
     const targetDepartment = await assertDepartmentInScope(trx, scope, toDepartmentId);
 
     await trx('student_department_history').insert({

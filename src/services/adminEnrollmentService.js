@@ -83,6 +83,55 @@ async function assertEnrollmentRelations(connection, payload) {
   }
 }
 
+async function assertEnrollmentBusinessRules(connection, payload, excludeEnrollmentId = null) {
+  const duplicateQuery = connection('enrollments')
+    .where({
+      student_id: payload.student_id,
+      section_id: payload.section_id,
+      academic_term_id: payload.academic_term_id || null,
+    });
+
+  if (excludeEnrollmentId) {
+    duplicateQuery.whereNot({ id: excludeEnrollmentId });
+  }
+
+  const duplicate = await duplicateQuery.first();
+  if (duplicate) {
+    const error = new Error('Enrollment already exists for this student, section, and term');
+    error.status = 409;
+    throw error;
+  }
+
+  if (payload.status === 'dropped') {
+    return;
+  }
+
+  const section = await connection('sections').where({ id: payload.section_id }).first();
+  if (!section) {
+    const error = new Error('Section not found');
+    error.status = 404;
+    throw error;
+  }
+
+  const occupancyRow = await connection('enrollments')
+    .where({ section_id: payload.section_id })
+    .whereNot('status', 'dropped')
+    .modify((query) => {
+      if (excludeEnrollmentId) {
+        query.whereNot({ id: excludeEnrollmentId });
+      }
+    })
+    .count('* as count')
+    .first();
+
+  const occupancy = Number(occupancyRow?.count || 0);
+  if (occupancy >= Number(section.capacity)) {
+    const error = new Error('Section capacity has been reached');
+    error.status = 422;
+    throw error;
+  }
+}
+
 export async function listEnrollments({ search, student_id: studentId, section_id: sectionId, academic_term_id: academicTermId, status, page = 1, limit = 25 } = {}, actor) {
   const scope = buildAdminScope(actor);
   if (studentId) {
@@ -134,6 +183,7 @@ export async function createEnrollment(payload, actor) {
     await assertSectionInScope(trx, scope, payload.section_id);
 
     await assertEnrollmentRelations(trx, payload);
+    await assertEnrollmentBusinessRules(trx, payload);
 
     const [created] = await trx('enrollments')
       .insert({
@@ -171,6 +221,7 @@ export async function updateEnrollment(id, payload, actor) {
     await assertStudentInScope(trx, scope, relationPayload.student_id);
     await assertSectionInScope(trx, scope, relationPayload.section_id);
     await assertEnrollmentRelations(trx, relationPayload);
+    await assertEnrollmentBusinessRules(trx, relationPayload, id);
 
     const patch = {};
     for (const key of ['student_id', 'section_id', 'academic_term_id', 'status', 'registered_at', 'dropped_at']) {
