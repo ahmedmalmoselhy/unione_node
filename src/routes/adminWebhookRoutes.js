@@ -7,9 +7,10 @@ import { failedDeliveries } from '../controllers/adminWebhookController.js';
 import { adminFailedWebhookQuerySchema } from '../validators/adminValidators.js';
 
 const router = express.Router();
+const adminScopedRoles = ['admin', 'university_admin', 'faculty_admin', 'department_admin'];
 
 router.use(apiLimiter);
-router.use(authenticate, authorizeAny('admin', 'super_admin'));
+router.use(authenticate, authorizeAny(...adminScopedRoles));
 
 router.get('/failed', validate(adminFailedWebhookQuerySchema, 'query'), failedDeliveries);
 

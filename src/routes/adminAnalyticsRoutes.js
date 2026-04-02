@@ -7,9 +7,10 @@ import { ratingsSummary, attendanceSummary } from '../controllers/adminAnalytics
 import { adminAnalyticsQuerySchema } from '../validators/adminValidators.js';
 
 const router = express.Router();
+const adminScopedRoles = ['admin', 'university_admin', 'faculty_admin', 'department_admin'];
 
 router.use(apiLimiter);
-router.use(authenticate, authorizeAny('admin', 'super_admin'));
+router.use(authenticate, authorizeAny(...adminScopedRoles));
 
 router.get('/ratings', validate(adminAnalyticsQuerySchema, 'query'), ratingsSummary);
 router.get('/attendance', validate(adminAnalyticsQuerySchema, 'query'), attendanceSummary);
