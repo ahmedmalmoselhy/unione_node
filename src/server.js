@@ -15,6 +15,7 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import webhookRoutes from './routes/webhookRoutes.js';
 import adminAnalyticsRoutes from './routes/adminAnalyticsRoutes.js';
 import adminWebhookRoutes from './routes/adminWebhookRoutes.js';
+import adminDashboardRoutes from './routes/adminDashboardRoutes.js';
 
 dotenv.config();
 
@@ -54,6 +55,7 @@ app.use('/api/announcements', announcementRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/webhooks', webhookRoutes);
 app.use('/api/admin/analytics', adminAnalyticsRoutes);
+app.use('/api/admin/dashboard', adminDashboardRoutes);
 app.use('/api/admin/webhooks', adminWebhookRoutes);
 
 // 404 handler

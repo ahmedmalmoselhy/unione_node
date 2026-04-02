@@ -83,6 +83,8 @@
 - ✅ Webhook retry/backoff controls implemented (3-attempt exponential backoff with delivery metadata headers)
 - ✅ Admin analytics endpoints implemented (`GET /api/admin/analytics/ratings`, `GET /api/admin/analytics/attendance`)
 - ✅ Admin failed webhook deliveries endpoint implemented (`GET /api/admin/webhooks/failed`)
+- ✅ Admin dashboard stats endpoint implemented (`GET /api/admin/dashboard/stats`)
+- ✅ Admin audit-log listing endpoint implemented (`GET /api/admin/dashboard/audit-logs`)
 - ✅ Webhook dead-letter endpoints implemented (`GET /api/webhooks/dead-letter`, `POST /api/webhooks/dead-letter/:deliveryId/retry`)
 - ✅ Notification quiet-hours controls implemented (`GET/PUT /api/notifications/quiet-hours`)
 - ✅ Admin route authorization aligned with scoped admin roles for analytics and webhook management routes
@@ -257,7 +259,7 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 
 - Authorization policy coverage across all route groups for future module additions
 - Feature endpoints beyond auth, organization, student/professor core + writes, announcement/notification modules, admin analytics/webhook support, and the new academic-history endpoint
-- Laravel dashboard/portal backend surface still not fully mirrored in Node, including admin CRUD, imports/exports, locale switching, audit logs, dashboard stats, and several portal-only routes
+- Laravel dashboard/portal backend surface still not fully mirrored in Node, including admin CRUD, imports/exports, locale switching, and several portal-only routes
 - Frontend project scaffold and UI implementation
 - Comprehensive integration and E2E test coverage
 
@@ -371,7 +373,7 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 
 **UniOne Platform** is fully specified, architected, and ready for implementation. All planning is complete. All documentation is in place. Development environment is prepared.
 
-**STATUS: 🟢 READY TO CODE**
+## **STATUS: 🟢 READY TO CODE**
 
 Start with Phase 1, follow the roadmap, reference the documentation, and build something great!
 
@@ -394,4 +396,4 @@ Follow the "Next Immediate Steps" section above based on your role.
 **Timeline**: 7-8 weeks 📅  
 **Team**: Ready 👥
 
-**LET'S BUILD! 🚀**
+## **LET'S BUILD! 🚀**

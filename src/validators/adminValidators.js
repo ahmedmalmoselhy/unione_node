@@ -11,3 +11,18 @@ export const adminAnalyticsQuerySchema = Joi.object({
 export const adminFailedWebhookQuerySchema = Joi.object({
   limit: Joi.number().integer().min(1).max(200).optional(),
 });
+
+export const adminDashboardStatsQuerySchema = Joi.object({
+  faculty_id: Joi.number().integer().positive().optional(),
+  department_id: Joi.number().integer().positive().optional(),
+});
+
+export const adminAuditLogsQuerySchema = Joi.object({
+  action: Joi.string().valid('create', 'update', 'delete', 'assign', 'revoke', 'transfer', 'login', 'logout').optional(),
+  auditable_type: Joi.string().max(191).optional(),
+  search: Joi.string().max(255).optional(),
+  from_date: Joi.date().iso().optional(),
+  to_date: Joi.date().iso().optional(),
+  limit: Joi.number().integer().min(1).max(200).optional(),
+  page: Joi.number().integer().min(1).optional(),
+});
