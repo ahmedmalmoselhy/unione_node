@@ -19,6 +19,7 @@ import {
   listStudentGradesByUserId,
   listStudentAttendanceByUserId,
   listStudentRatingsByUserId,
+  listStudentTermGpasByUserId,
   findEnrollmentByIdAndStudentUserId,
   upsertCourseRatingByEnrollmentId,
 } from '../models/studentModel.js';
@@ -77,6 +78,91 @@ export async function getStudentTranscript(userId, { academic_term_id: academicT
   return {
     student: profile,
     transcript,
+  };
+}
+
+export async function getStudentAcademicHistory(userId) {
+  const [profile, enrollments, termGpas] = await Promise.all([
+    findStudentProfileByUserId(userId),
+    listStudentEnrollmentsByUserId(userId),
+    listStudentTermGpasByUserId(userId),
+  ]);
+
+  const completedEnrollments = enrollments.filter((enrollment) => enrollment.status === 'completed');
+  const creditsEarned = completedEnrollments.reduce(
+    (sum, enrollment) => sum + Number(enrollment.credit_hours || 0),
+    0
+  );
+  const creditsRequired = Number(profile?.department_required_credit_hours || 0) || null;
+
+  const termGpaMap = new Map(termGpas.map((termGpa) => [Number(termGpa.academic_term_id), termGpa]));
+
+  const terms = enrollments
+    .filter((enrollment) => enrollment.academic_term_id)
+    .reduce((groups, enrollment) => {
+      const termId = Number(enrollment.academic_term_id);
+      if (!groups.has(termId)) {
+        groups.set(termId, []);
+      }
+      groups.get(termId).push(enrollment);
+      return groups;
+    }, new Map());
+
+  const orderedTerms = Array.from(terms.entries())
+    .sort(([leftId], [rightId]) => leftId - rightId)
+    .map(([termId, termEnrollments]) => {
+      const first = termEnrollments[0];
+      const termGpa = termGpaMap.get(termId);
+
+      return {
+        academic_term: {
+          id: Number(first.academic_term_id),
+          name: first.term_name,
+          academic_year: first.term_academic_year,
+          semester: first.term_semester,
+        },
+        term_gpa: termGpa ? Number(termGpa.gpa) : null,
+        term_credits: termGpa ? Number(termGpa.credit_hours_completed) : null,
+        courses: termEnrollments.map((enrollment) => ({
+          enrollment_id: enrollment.id,
+          status: enrollment.status,
+          registered_at: enrollment.registered_at,
+          dropped_at: enrollment.dropped_at,
+          course: {
+            id: enrollment.course_id,
+            code: enrollment.course_code,
+            name: enrollment.course_name,
+            credit_hours: enrollment.credit_hours,
+          },
+          grade: enrollment.letter_grade
+            ? {
+                letter_grade: enrollment.letter_grade,
+                total: enrollment.total,
+                grade_points: enrollment.grade_points,
+              }
+            : null,
+        })),
+      };
+    });
+
+  return {
+    student: {
+      student_number: profile?.student_number,
+      name: [profile?.first_name, profile?.last_name].filter(Boolean).join(' '),
+      faculty: profile?.faculty_name,
+      department: profile?.department_name,
+      enrollment_status: profile?.enrollment_status,
+      academic_year: profile?.academic_year,
+      semester: profile?.semester,
+      gpa: profile?.gpa,
+      academic_standing: profile?.academic_standing,
+    },
+    progress: {
+      credits_earned: creditsEarned,
+      credits_required: creditsRequired,
+      progress_pct: creditsRequired && creditsRequired > 0 ? Math.round(Math.min((creditsEarned / creditsRequired) * 100, 100) * 10) / 10 : null,
+    },
+    terms: orderedTerms,
   };
 }
 

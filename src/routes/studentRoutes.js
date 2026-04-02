@@ -7,6 +7,7 @@ import {
   enrollments,
   grades,
   transcript,
+  academicHistory,
   transcriptPdf,
   schedule,
   scheduleIcs,
@@ -43,6 +44,7 @@ router.post('/enrollments', writeLimiter, validate(studentEnrollSchema), enroll)
 router.delete('/enrollments/:id', writeLimiter, validate(studentEnrollmentIdParamSchema, 'params'), drop);
 router.get('/grades', validate(studentGradesQuerySchema, 'query'), grades);
 router.get('/transcript', validate(studentGradesQuerySchema, 'query'), transcript);
+router.get('/academic-history', academicHistory);
 router.get('/transcript/pdf', validate(studentGradesQuerySchema, 'query'), transcriptPdf);
 router.get('/schedule', validate(studentGradesQuerySchema, 'query'), schedule);
 router.get('/schedule/ics', validate(studentGradesQuerySchema, 'query'), scheduleIcs);

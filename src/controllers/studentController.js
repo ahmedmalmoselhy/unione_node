@@ -4,6 +4,7 @@ import {
   getStudentEnrollments,
   getStudentGrades,
   getStudentTranscript,
+  getStudentAcademicHistory,
   getStudentTranscriptPdf,
   getStudentSchedule,
   getStudentScheduleIcs,
@@ -53,6 +54,15 @@ export async function transcript(req, res, next) {
   try {
     const data = await getStudentTranscript(req.user.id, req.query);
     return res.status(200).json(success(data, 'Student transcript fetched successfully', 200));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function academicHistory(req, res, next) {
+  try {
+    const data = await getStudentAcademicHistory(req.user.id);
+    return res.status(200).json(success(data, 'Student academic history fetched successfully', 200));
   } catch (error) {
     return next(error);
   }

@@ -74,6 +74,7 @@
 - ✅ Student export endpoints implemented (`GET /api/student/transcript`, `GET /api/student/transcript/pdf`, `GET /api/student/schedule`, `GET /api/student/schedule/ics`)
 - ✅ Professor schedule export endpoint implemented (`GET /api/professor/schedule/ics`)
 - ✅ Student attendance and course rating endpoints implemented (`GET /api/student/attendance`, `GET/POST /api/student/ratings`)
+- ✅ Student academic history endpoint implemented (`GET /api/student/academic-history`)
 - ✅ Section announcement workflows implemented (`GET /api/student/sections/:sectionId/announcements`, `GET/POST /api/professor/sections/:id/announcements`)
 - ✅ Advanced enrollment constraints implemented (term registration window checks and withdrawal deadline enforcement)
 - ✅ Webhook dispatch pipeline implemented for enrollment/grade/attendance events with delivery logging and failure tracking
@@ -214,8 +215,8 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 
 ### For Backend Developer
 
-1. Expand authorization policy coverage to remaining student/professor/admin write routes as new modules land
-2. Continue adding backend feature endpoints only when new requirements emerge
+1. Mirror the remaining Laravel dashboard/admin CRUD, import/export, locale, audit-log, and stats routes in Node
+2. Continue expanding policy coverage and scope-specific access checks as those routes are added
 
 ### For Frontend Developer
 
@@ -255,7 +256,8 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 **What's NOT Ready** (Current Gaps):
 
 - Authorization policy coverage across all route groups for future module additions
-- Feature endpoints beyond auth, organization, student/professor core + writes, announcement/notification modules, and admin analytics/webhook support
+- Feature endpoints beyond auth, organization, student/professor core + writes, announcement/notification modules, admin analytics/webhook support, and the new academic-history endpoint
+- Laravel dashboard/portal backend surface still not fully mirrored in Node, including admin CRUD, imports/exports, locale switching, audit logs, dashboard stats, and several portal-only routes
 - Frontend project scaffold and UI implementation
 - Comprehensive integration and E2E test coverage
 

@@ -25,10 +25,27 @@ export async function findStudentProfileByUserId(userId) {
       'f.code as faculty_code',
       'd.id as department_id',
       'd.name as department_name',
-      'd.code as department_code'
+      'd.code as department_code',
+      'd.required_credit_hours as department_required_credit_hours'
     )
     .where('s.user_id', userId)
     .first();
+}
+
+export async function listStudentTermGpasByUserId(userId) {
+  return db('student_term_gpas as tg')
+    .join('students as s', 's.id', 'tg.student_id')
+    .leftJoin('academic_terms as t', 't.id', 'tg.academic_term_id')
+    .where('s.user_id', userId)
+    .select(
+      'tg.academic_term_id',
+      'tg.gpa',
+      'tg.credit_hours_completed',
+      't.name as term_name',
+      't.academic_year as term_academic_year',
+      't.semester as term_semester'
+    )
+    .orderBy('tg.academic_term_id', 'asc');
 }
 
 export async function findStudentByUserId(userId) {
@@ -418,6 +435,7 @@ export default {
   listStudentGradesByUserId,
   listStudentAttendanceByUserId,
   listStudentRatingsByUserId,
+  listStudentTermGpasByUserId,
   findEnrollmentByIdAndStudentUserId,
   upsertCourseRatingByEnrollmentId,
 };
