@@ -16,6 +16,8 @@ import webhookRoutes from './routes/webhookRoutes.js';
 import adminAnalyticsRoutes from './routes/adminAnalyticsRoutes.js';
 import adminWebhookRoutes from './routes/adminWebhookRoutes.js';
 import adminDashboardRoutes from './routes/adminDashboardRoutes.js';
+import localeRoutes from './routes/localeRoutes.js';
+import { localeMiddleware } from './middleware/locale.js';
 
 dotenv.config();
 
@@ -28,6 +30,7 @@ app.use(cors());
 app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(localeMiddleware);
 
 // Health check route
 app.get('/health', (req, res) => {
@@ -54,6 +57,7 @@ app.use('/api/professor', professorRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/webhooks', webhookRoutes);
+app.use('/api/locale', localeRoutes);
 app.use('/api/admin/analytics', adminAnalyticsRoutes);
 app.use('/api/admin/dashboard', adminDashboardRoutes);
 app.use('/api/admin/webhooks', adminWebhookRoutes);
