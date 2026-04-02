@@ -83,6 +83,7 @@
 - ✅ Webhook retry/backoff controls implemented (3-attempt exponential backoff with delivery metadata headers)
 - ✅ Admin analytics endpoints implemented (`GET /api/admin/analytics/ratings`, `GET /api/admin/analytics/attendance`)
 - ✅ Admin failed webhook deliveries endpoint implemented (`GET /api/admin/webhooks/failed`)
+- ✅ Admin webhook delivery-history endpoint implemented (`GET /api/admin/webhooks/:webhookId/deliveries`)
 - ✅ Admin dashboard stats endpoint implemented (`GET /api/admin/dashboard/stats`)
 - ✅ Admin audit-log listing endpoint implemented (`GET /api/admin/dashboard/audit-logs`)
 - ✅ Webhook dead-letter endpoints implemented (`GET /api/webhooks/dead-letter`, `POST /api/webhooks/dead-letter/:deliveryId/retry`)

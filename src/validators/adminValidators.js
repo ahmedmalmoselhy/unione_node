@@ -12,6 +12,10 @@ export const adminFailedWebhookQuerySchema = Joi.object({
   limit: Joi.number().integer().min(1).max(200).optional(),
 });
 
+export const adminWebhookIdParamSchema = Joi.object({
+  webhookId: Joi.number().integer().positive().required(),
+});
+
 export const adminDashboardStatsQuerySchema = Joi.object({
   faculty_id: Joi.number().integer().positive().optional(),
   department_id: Joi.number().integer().positive().optional(),

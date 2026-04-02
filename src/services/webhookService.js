@@ -87,6 +87,12 @@ export async function dispatchWebhookEvent(event, payload) {
   );
 }
 
+export async function listWebhookDeliveries(userId, webhookId, limit = 50) {
+  const safeLimit = Math.min(Number(limit) || 50, 200);
+  return webhookModel.listWebhookDeliveriesByWebhookIdAndUserId(userId, webhookId, safeLimit);
+}
+
 export default {
   dispatchWebhookEvent,
+  listWebhookDeliveries,
 };

@@ -103,6 +103,16 @@ export async function listDeadLetterDeliveriesByUserId(userId, limit = 50) {
     .limit(limit);
 }
 
+export async function listWebhookDeliveriesByWebhookIdAndUserId(userId, webhookId, limit = 50) {
+  return db('webhook_deliveries as d')
+    .join('webhooks as w', 'w.id', 'd.webhook_id')
+    .where('w.user_id', userId)
+    .where('w.id', webhookId)
+    .select('d.id', 'd.event', 'd.response_status', 'd.attempt', 'd.delivered_at', 'd.created_at')
+    .orderBy('d.created_at', 'desc')
+    .limit(limit);
+}
+
 export async function getDeadLetterDeliveryByIdAndUserId(userId, deliveryId) {
   return db('webhook_deliveries as d')
     .join('webhooks as w', 'w.id', 'd.webhook_id')
@@ -126,5 +136,6 @@ export default {
   markWebhookSuccess,
   incrementWebhookFailure,
   listDeadLetterDeliveriesByUserId,
+  listWebhookDeliveriesByWebhookIdAndUserId,
   getDeadLetterDeliveryByIdAndUserId,
 };
