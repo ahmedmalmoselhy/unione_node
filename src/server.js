@@ -19,6 +19,7 @@ import adminDashboardRoutes from './routes/adminDashboardRoutes.js';
 import localeRoutes from './routes/localeRoutes.js';
 import adminExportRoutes from './routes/adminExportRoutes.js';
 import adminImportTemplateRoutes from './routes/adminImportTemplateRoutes.js';
+import adminImportRoutes from './routes/adminImportRoutes.js';
 import { localeMiddleware } from './middleware/locale.js';
 
 dotenv.config();
@@ -64,6 +65,7 @@ app.use('/api/admin/analytics', adminAnalyticsRoutes);
 app.use('/api/admin/dashboard', adminDashboardRoutes);
 app.use('/api/admin/exports', adminExportRoutes);
 app.use('/api/admin/import-templates', adminImportTemplateRoutes);
+app.use('/api/admin/imports', adminImportRoutes);
 app.use('/api/admin/webhooks', adminWebhookRoutes);
 
 // 404 handler
