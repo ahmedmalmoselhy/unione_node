@@ -37,3 +37,27 @@ export const adminAuditLogsQuerySchema = Joi.object({
   limit: Joi.number().integer().min(1).max(200).optional(),
   page: Joi.number().integer().min(1).optional(),
 });
+
+export const adminAcademicTermSchema = Joi.object({
+  name: Joi.string().max(255).required(),
+  academic_year: Joi.number().integer().required(),
+  semester: Joi.number().integer().valid(1, 2).required(),
+  starts_at: Joi.date().iso().required(),
+  ends_at: Joi.date().iso().required(),
+  registration_starts_at: Joi.date().iso().required(),
+  registration_ends_at: Joi.date().iso().required(),
+  withdrawal_deadline: Joi.date().iso().allow(null, '').optional(),
+  is_active: Joi.boolean().default(false),
+});
+
+export const adminAcademicTermUpdateSchema = Joi.object({
+  name: Joi.string().max(255).optional(),
+  academic_year: Joi.number().integer().optional(),
+  semester: Joi.number().integer().valid(1, 2).optional(),
+  starts_at: Joi.date().iso().optional(),
+  ends_at: Joi.date().iso().optional(),
+  registration_starts_at: Joi.date().iso().optional(),
+  registration_ends_at: Joi.date().iso().optional(),
+  withdrawal_deadline: Joi.date().iso().allow(null, '').optional(),
+  is_active: Joi.boolean().optional(),
+}).min(1);

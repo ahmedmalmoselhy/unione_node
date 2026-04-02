@@ -91,6 +91,7 @@
 - ✅ Admin import-template endpoints implemented (`GET /api/admin/import-templates/students`, `/professors`, `/grades`)
 - ✅ Admin CSV import endpoints implemented (`POST /api/admin/imports/students`, `/professors`, `/grades`)
 - ✅ University vice-president CRUD implemented (`GET/POST/PATCH/DELETE /api/organization/university/vice-presidents`)
+- ✅ Academic-term CRUD implemented (`GET/POST/PATCH/DELETE /api/admin/academic-terms`)
 - ✅ Webhook dead-letter endpoints implemented (`GET /api/webhooks/dead-letter`, `POST /api/webhooks/dead-letter/:deliveryId/retry`)
 - ✅ Notification quiet-hours controls implemented (`GET/PUT /api/notifications/quiet-hours`)
 - ✅ Admin route authorization aligned with scoped admin roles for analytics and webhook management routes
@@ -225,6 +226,7 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 
 1. Mirror the remaining Laravel dashboard/admin CRUD, import/export, locale, audit-log, and stats routes in Node
 2. Continue expanding policy coverage and scope-specific access checks as those routes are added
+3. Close the remaining Laravel dashboard resource families, especially course, section, enrollment, and portal-adjacent admin workflows
 
 ### For Frontend Developer
 
