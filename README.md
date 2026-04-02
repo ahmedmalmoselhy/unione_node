@@ -5,6 +5,7 @@ A complete academic management system with **Node.js backend** and **React front
 ## 🎯 Project Overview
 
 UniOne is a comprehensive university management platform featuring:
+
 - **Student Portal**: Course enrollment, grades, transcripts, attendance tracking
 - **Professor Portal**: Grade submission, attendance management, announcements
 - **Admin Portal**: System management, webhooks, audit logs
@@ -13,6 +14,7 @@ UniOne is a comprehensive university management platform featuring:
 - **Advanced Features**: PDF transcripts, iCal schedules, real-time notifications, webhooks
 
 ### Technology Stack
+
 **Backend**: Node.js + Express.js + PostgreSQL  
 **Frontend**: React 18+ + Tailwind CSS + Redux Toolkit  
 **Database**: PostgreSQL (same as Laravel backend)
@@ -27,7 +29,7 @@ UniOne is a comprehensive university management platform featuring:
 For detailed information:
 
 | Document | Purpose |
-|----------|---------|
+| ---------- | --------- |
 | [PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md) | 📊 Complete project summary, architecture, timeline |
 | [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) | 🎯 Detailed 8-phase implementation + UI specification |
 | [FRONTEND_GUIDE.md](./FRONTEND_GUIDE.md) | ⚛️ React development guide, patterns, components |
@@ -88,7 +90,8 @@ Frontend will be available at `http://localhost:5173`
 ## 🏗️ Project Structure
 
 ### Backend
-```
+
+```bash
 unione_node/
 ├── src/
 │   ├── config/          # Database, Knex config
@@ -107,7 +110,8 @@ unione_node/
 ```
 
 ### Frontend (To be created)
-```
+
+```bash
 unione_frontend/
 ├── src/
 │   ├── components/      # 120+ React components
@@ -125,6 +129,7 @@ unione_frontend/
 ## 🚀 Available Scripts
 
 ### Backend Commands
+
 ```bash
 npm start               # Production server
 npm run dev            # Development with auto-reload
@@ -135,6 +140,7 @@ npm run lint:fix       # Auto-fix linting
 ```
 
 ### Database Commands
+
 ```bash
 npx knex migrate:make  # Create migration
 npx knex migrate:latest # Run migrations
@@ -143,16 +149,8 @@ npx knex seed:make     # Create seeder
 npx knex seed:run      # Run seeders
 ```
 
-## 💾 Database
-
-### Connection Details
-- **Host**: 127.0.0.1
-- **Port**: 5432
-- **Database**: unione_db
-- **User**: unione
-- **Password**: 241996
-
 ### Configuration Files
+
 - `src/config/database.js` - PostgreSQL connection pooling
 - `src/config/knex.js` - Knex query builder setup
 - `.env` - Environment variables
@@ -187,6 +185,7 @@ npx knex migrate:latest
 ## 🔐 Authentication
 
 ### Login Endpoint
+
 ```bash
 curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
@@ -194,6 +193,7 @@ curl -X POST http://localhost:3000/api/auth/login \
 ```
 
 ### Response
+
 ```json
 {
   "token": "eyJhbGciOiJIUzI1NiIs...",
@@ -207,6 +207,7 @@ curl -X POST http://localhost:3000/api/auth/login \
 ```
 
 ### Using Token
+
 ```bash
 curl -H "Authorization: Bearer <token>" http://localhost:3000/api/student/profile
 ```
@@ -214,14 +215,16 @@ curl -H "Authorization: Bearer <token>" http://localhost:3000/api/student/profil
 ## 📊 API Overview
 
 ### Public Routes (3 endpoints)
-```
+
+```bash
 POST /api/auth/login
 POST /api/auth/forgot-password
 POST /api/auth/reset-password
 ```
 
 ### Protected Routes (49+ endpoints)
-```
+
+```bash
 Student:    /api/student/*         (15 endpoints)
 Professor:  /api/professor/*       (13 endpoints)
 Admin:      /api/admin/*           (5 endpoints)
@@ -233,6 +236,7 @@ See [API_ENDPOINTS.md](./API_ENDPOINTS.md) for complete documentation.
 ## 🧪 Testing
 
 ### Run Tests
+
 ```bash
 npm test                 # All tests once
 npm run test:watch      # Watch mode
@@ -240,7 +244,8 @@ npm run test:coverage   # With coverage report
 ```
 
 ### Test Structure
-```
+
+```bash
 tests/
 ├── unit/                # Component/function tests
 ├── integration/         # API endpoint tests
@@ -250,11 +255,13 @@ tests/
 ## 🐳 Docker Deployment
 
 ### Build Image
+
 ```bash
 docker build -t unione-backend .
 ```
 
 ### Run Container
+
 ```bash
 docker run -p 3000:3000 \
   -e DB_HOST=postgres \
@@ -263,6 +270,7 @@ docker run -p 3000:3000 \
 ```
 
 ### Docker Compose
+
 ```bash
 docker-compose up -d
 ```
@@ -270,7 +278,7 @@ docker-compose up -d
 ## 📈 Project Timeline
 
 | Week | Focus |
-|------|-------|
+| ------ | ------- |
 | 1 | Foundation (Auth, Models, React setup) |
 | 2 | Student Portal Core |
 | 3 | Academic Records |
@@ -285,6 +293,7 @@ docker-compose up -d
 ## 🆘 Troubleshooting
 
 ### Database Connection Failed
+
 ```bash
 # Check PostgreSQL is running
 psql -U unione -d unione_db
@@ -295,6 +304,7 @@ npm run dev
 ```
 
 ### API 401 Unauthorized
+
 ```bash
 # Token expired or invalid
 # Get new token:
@@ -302,6 +312,7 @@ curl -X POST http://localhost:3000/api/auth/login
 ```
 
 ### Port Already in Use
+
 ```bash
 # Change port in .env or kill process
 lsof -i :3000
