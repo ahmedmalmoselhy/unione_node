@@ -1,4 +1,5 @@
 import db from '../config/knex.js';
+import { assertDepartmentInScope, assertFacultyInScope, buildAdminScope } from '../utils/adminScope.js';
 
 async function getRoleByName(connection, name) {
   const role = await connection('roles').whereRaw('LOWER(name) = LOWER(?)', [name]).first();
@@ -62,8 +63,11 @@ async function upsertRoleAssignment(connection, { userId, roleId, facultyId = nu
   return created.id;
 }
 
-export async function assignFacultyAdmin(facultyId, userId) {
+export async function assignFacultyAdmin(facultyId, userId, actor) {
   return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
+    assertFacultyInScope(scope, facultyId);
+
     await assertFaculty(trx, facultyId);
     await assertUser(trx, userId);
     const role = await getRoleByName(trx, 'faculty_admin');
@@ -79,8 +83,11 @@ export async function assignFacultyAdmin(facultyId, userId) {
   });
 }
 
-export async function revokeFacultyAdmin(facultyId) {
+export async function revokeFacultyAdmin(facultyId, actor) {
   return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
+    assertFacultyInScope(scope, facultyId);
+
     await assertFaculty(trx, facultyId);
     const role = await getRoleByName(trx, 'faculty_admin');
 
@@ -93,8 +100,11 @@ export async function revokeFacultyAdmin(facultyId) {
   });
 }
 
-export async function assignDepartmentAdmin(departmentId, userId) {
+export async function assignDepartmentAdmin(departmentId, userId, actor) {
   return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
+    await assertDepartmentInScope(trx, scope, departmentId);
+
     const department = await assertDepartment(trx, departmentId);
     await assertUser(trx, userId);
     const role = await getRoleByName(trx, 'department_admin');
@@ -110,8 +120,11 @@ export async function assignDepartmentAdmin(departmentId, userId) {
   });
 }
 
-export async function revokeDepartmentAdmin(departmentId) {
+export async function revokeDepartmentAdmin(departmentId, actor) {
   return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
+    await assertDepartmentInScope(trx, scope, departmentId);
+
     await assertDepartment(trx, departmentId);
     const role = await getRoleByName(trx, 'department_admin');
 
@@ -124,8 +137,11 @@ export async function revokeDepartmentAdmin(departmentId) {
   });
 }
 
-export async function assignDepartmentHead(departmentId, userId) {
+export async function assignDepartmentHead(departmentId, userId, actor) {
   return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
+    await assertDepartmentInScope(trx, scope, departmentId);
+
     const department = await assertDepartment(trx, departmentId);
     await assertUser(trx, userId);
     const role = await getRoleByName(trx, 'department_head');
@@ -142,8 +158,11 @@ export async function assignDepartmentHead(departmentId, userId) {
   });
 }
 
-export async function revokeDepartmentHead(departmentId) {
+export async function revokeDepartmentHead(departmentId, actor) {
   return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
+    await assertDepartmentInScope(trx, scope, departmentId);
+
     const department = await assertDepartment(trx, departmentId);
     const role = await getRoleByName(trx, 'department_head');
 

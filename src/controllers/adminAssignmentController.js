@@ -11,7 +11,7 @@ import {
 export async function storeFacultyAdmin(req, res, next) {
   try {
     const facultyId = Number(req.params.id);
-    const data = await assignFacultyAdmin(facultyId, req.body.user_id);
+    const data = await assignFacultyAdmin(facultyId, req.body.user_id, req.user);
     return res.status(200).json(success(data, 'Faculty admin assigned successfully', 200));
   } catch (error) {
     if (error.status) {
@@ -24,7 +24,7 @@ export async function storeFacultyAdmin(req, res, next) {
 export async function removeFacultyAdmin(req, res, next) {
   try {
     const facultyId = Number(req.params.id);
-    const data = await revokeFacultyAdmin(facultyId);
+    const data = await revokeFacultyAdmin(facultyId, req.user);
     return res.status(200).json(success(data, 'Faculty admin revoked successfully', 200));
   } catch (error) {
     if (error.status) {
@@ -37,7 +37,7 @@ export async function removeFacultyAdmin(req, res, next) {
 export async function storeDepartmentAdmin(req, res, next) {
   try {
     const departmentId = Number(req.params.id);
-    const data = await assignDepartmentAdmin(departmentId, req.body.user_id);
+    const data = await assignDepartmentAdmin(departmentId, req.body.user_id, req.user);
     return res.status(200).json(success(data, 'Department admin assigned successfully', 200));
   } catch (error) {
     if (error.status) {
@@ -50,7 +50,7 @@ export async function storeDepartmentAdmin(req, res, next) {
 export async function removeDepartmentAdmin(req, res, next) {
   try {
     const departmentId = Number(req.params.id);
-    const data = await revokeDepartmentAdmin(departmentId);
+    const data = await revokeDepartmentAdmin(departmentId, req.user);
     return res.status(200).json(success(data, 'Department admin revoked successfully', 200));
   } catch (error) {
     if (error.status) {
@@ -63,7 +63,7 @@ export async function removeDepartmentAdmin(req, res, next) {
 export async function storeDepartmentHead(req, res, next) {
   try {
     const departmentId = Number(req.params.id);
-    const data = await assignDepartmentHead(departmentId, req.body.user_id);
+    const data = await assignDepartmentHead(departmentId, req.body.user_id, req.user);
     return res.status(200).json(success(data, 'Department head assigned successfully', 200));
   } catch (error) {
     if (error.status) {
@@ -76,7 +76,7 @@ export async function storeDepartmentHead(req, res, next) {
 export async function removeDepartmentHead(req, res, next) {
   try {
     const departmentId = Number(req.params.id);
-    const data = await revokeDepartmentHead(departmentId);
+    const data = await revokeDepartmentHead(departmentId, req.user);
     return res.status(200).json(success(data, 'Department head revoked successfully', 200));
   } catch (error) {
     if (error.status) {

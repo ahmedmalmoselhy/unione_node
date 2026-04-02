@@ -107,6 +107,7 @@
 - ✅ Admin route authorization aligned with scoped admin roles for analytics and webhook management routes
 - ✅ Admin attendance summary endpoint now supports section, course, academic-term, and date filters
 - ✅ Scoped-admin access hardening applied across admin resource CRUD/report schedules (students, professors, courses, sections, employees, enrollments, grades)
+- ✅ Acting-user scope checks enforced on admin assignment grant/revoke endpoints (faculty admin, department admin, department head)
 
 ### Frontend Planning: ✅ **COMPLETE**
 
@@ -238,7 +239,7 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 1. Mirror the remaining Laravel dashboard/admin CRUD, import/export, locale, audit-log, and stats routes in Node
 2. Continue expanding policy coverage and scope-specific access checks as those routes are added
 3. Backfill integration tests for the new admin CRUD/assignment/report route families
-4. Enforce acting-user scope checks on admin assignment endpoints (faculty/department/dept-head role grants/revokes)
+4. Align announcement write authorization with scoped admin role model (remove legacy `super_admin` mismatch)
 
 ### For Frontend Developer
 
