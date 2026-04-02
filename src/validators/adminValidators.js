@@ -16,6 +16,13 @@ export const adminWebhookIdParamSchema = Joi.object({
   webhookId: Joi.number().integer().positive().required(),
 });
 
+export const adminExportQuerySchema = Joi.object({
+  faculty_id: Joi.number().integer().positive().optional(),
+  department_id: Joi.number().integer().positive().optional(),
+  academic_term_id: Joi.number().integer().positive().optional(),
+  status: Joi.string().valid('registered', 'completed', 'dropped', 'active').optional(),
+});
+
 export const adminDashboardStatsQuerySchema = Joi.object({
   faculty_id: Joi.number().integer().positive().optional(),
   department_id: Joi.number().integer().positive().optional(),

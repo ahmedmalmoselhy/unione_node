@@ -87,6 +87,7 @@
 - ✅ Admin dashboard stats endpoint implemented (`GET /api/admin/dashboard/stats`)
 - ✅ Admin audit-log listing endpoint implemented (`GET /api/admin/dashboard/audit-logs`)
 - ✅ Locale preference endpoint implemented (`GET/PUT /api/locale`)
+- ✅ Admin CSV export endpoints implemented (`GET /api/admin/exports/students`, `/professors`, `/employees`, `/enrollments`, `/grades`)
 - ✅ Webhook dead-letter endpoints implemented (`GET /api/webhooks/dead-letter`, `POST /api/webhooks/dead-letter/:deliveryId/retry`)
 - ✅ Notification quiet-hours controls implemented (`GET/PUT /api/notifications/quiet-hours`)
 - ✅ Admin route authorization aligned with scoped admin roles for analytics and webhook management routes
