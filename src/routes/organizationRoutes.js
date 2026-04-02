@@ -6,11 +6,15 @@ import {
   university,
   faculties,
   departments,
+  vicePresidents,
   updateUniversity,
   createFaculty,
   updateFaculty,
   createDepartment,
   updateDepartment,
+  createVicePresident,
+  updateVicePresident,
+  deleteVicePresident,
 } from '../controllers/organizationController.js';
 import {
   facultyListSchema,
@@ -21,6 +25,8 @@ import {
   updateFacultySchema,
   createDepartmentSchema,
   updateDepartmentSchema,
+  createVicePresidentSchema,
+  updateVicePresidentSchema,
 } from '../validators/organizationValidators.js';
 import { apiLimiter, writeLimiter } from '../middleware/rateLimiters.js';
 
@@ -35,6 +41,11 @@ router.use(authenticate, authorizeAny(...elevatedRoles));
 
 router.get('/university', university);
 router.patch('/university', writeLimiter, authorizeAny(...highRoles), validate(updateUniversitySchema), updateUniversity);
+
+router.get('/university/vice-presidents', vicePresidents);
+router.post('/university/vice-presidents', writeLimiter, authorizeAny(...highRoles), validate(createVicePresidentSchema), createVicePresident);
+router.patch('/university/vice-presidents/:id', writeLimiter, authorizeAny(...highRoles), validate(entityIdParamSchema, 'params'), validate(updateVicePresidentSchema), updateVicePresident);
+router.delete('/university/vice-presidents/:id', writeLimiter, authorizeAny(...highRoles), validate(entityIdParamSchema, 'params'), deleteVicePresident);
 
 router.get('/faculties', validate(facultyListSchema, 'query'), faculties);
 router.post('/faculties', writeLimiter, authorizeAny(...highRoles), validate(createFacultySchema), createFaculty);

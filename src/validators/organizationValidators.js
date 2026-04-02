@@ -24,6 +24,18 @@ export const updateUniversitySchema = Joi.object({
   website: Joi.string().uri().allow(null, '').optional(),
 }).min(1);
 
+export const createVicePresidentSchema = Joi.object({
+  user_id: Joi.number().integer().positive().required(),
+  department: Joi.string().max(255).required(),
+  appointed_at: Joi.date().iso().required(),
+});
+
+export const updateVicePresidentSchema = Joi.object({
+  user_id: Joi.number().integer().positive().optional(),
+  department: Joi.string().max(255).optional(),
+  appointed_at: Joi.date().iso().optional(),
+}).min(1);
+
 export const createFacultySchema = Joi.object({
   name: Joi.string().max(255).required(),
   name_ar: Joi.string().max(255).required(),

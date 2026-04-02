@@ -3,11 +3,15 @@ import {
   getUniversity,
   getFaculties,
   getDepartments,
+  getUniversityVicePresidents,
   patchUniversity,
   addFaculty,
   patchFaculty,
   addDepartment,
   patchDepartment,
+  addUniversityVicePresident,
+  patchUniversityVicePresident,
+  removeUniversityVicePresident,
 } from '../services/organizationService.js';
 
 export async function university(req, res, next) {
@@ -37,6 +41,15 @@ export async function departments(req, res, next) {
   try {
     const data = await getDepartments(req.query);
     return res.status(200).json(success(data, 'Departments fetched successfully', 200));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function vicePresidents(req, res, next) {
+  try {
+    const data = await getUniversityVicePresidents();
+    return res.status(200).json(success(data, 'University vice presidents fetched successfully', 200));
   } catch (error) {
     return next(error);
   }
@@ -115,6 +128,56 @@ export async function updateDepartment(req, res, next) {
     if (error.code === '23505') {
       return res.status(409).json(errorResponse('Duplicate department code or unique value', 409));
     }
+    return next(error);
+  }
+}
+
+export async function createVicePresident(req, res, next) {
+  try {
+    const data = await addUniversityVicePresident(req.body);
+
+    if (!data) {
+      return res.status(404).json(errorResponse('University not found', 404));
+    }
+
+    return res.status(201).json(success(data, 'University vice president created successfully', 201));
+  } catch (error) {
+    if (error.code === '23505') {
+      return res.status(409).json(errorResponse('Duplicate vice president assignment', 409));
+    }
+    return next(error);
+  }
+}
+
+export async function updateVicePresident(req, res, next) {
+  try {
+    const id = Number(req.params.id);
+    const data = await patchUniversityVicePresident(id, req.body);
+
+    if (!data) {
+      return res.status(404).json(errorResponse('University vice president not found', 404));
+    }
+
+    return res.status(200).json(success(data, 'University vice president updated successfully', 200));
+  } catch (error) {
+    if (error.code === '23505') {
+      return res.status(409).json(errorResponse('Duplicate vice president assignment', 409));
+    }
+    return next(error);
+  }
+}
+
+export async function deleteVicePresident(req, res, next) {
+  try {
+    const id = Number(req.params.id);
+    const deleted = await removeUniversityVicePresident(id);
+
+    if (!deleted) {
+      return res.status(404).json(errorResponse('University vice president not found', 404));
+    }
+
+    return res.status(200).json(success({ deleted: true }, 'University vice president deleted successfully', 200));
+  } catch (error) {
     return next(error);
   }
 }
