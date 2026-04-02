@@ -21,6 +21,7 @@ import adminExportRoutes from './routes/adminExportRoutes.js';
 import adminImportTemplateRoutes from './routes/adminImportTemplateRoutes.js';
 import adminImportRoutes from './routes/adminImportRoutes.js';
 import adminAcademicTermRoutes from './routes/adminAcademicTermRoutes.js';
+import adminProfessorRoutes from './routes/adminProfessorRoutes.js';
 import { localeMiddleware } from './middleware/locale.js';
 
 dotenv.config();
@@ -68,6 +69,7 @@ app.use('/api/admin/exports', adminExportRoutes);
 app.use('/api/admin/import-templates', adminImportTemplateRoutes);
 app.use('/api/admin/imports', adminImportRoutes);
 app.use('/api/admin/academic-terms', adminAcademicTermRoutes);
+app.use('/api/admin/professors', adminProfessorRoutes);
 app.use('/api/admin/webhooks', adminWebhookRoutes);
 
 // 404 handler
