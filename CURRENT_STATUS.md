@@ -85,6 +85,7 @@
 - ✅ Webhook dead-letter endpoints implemented (`GET /api/webhooks/dead-letter`, `POST /api/webhooks/dead-letter/:deliveryId/retry`)
 - ✅ Notification quiet-hours controls implemented (`GET/PUT /api/notifications/quiet-hours`)
 - ✅ Admin route authorization aligned with scoped admin roles for analytics and webhook management routes
+- ✅ Admin attendance summary endpoint now supports section, course, academic-term, and date filters
 
 ### Frontend Planning: ✅ **COMPLETE**
 
@@ -214,7 +215,7 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 ### For Backend Developer
 
 1. Expand authorization policy coverage to remaining student/professor/admin write routes as new modules land
-2. Add attendance summary endpoint grouped by section/course with date filters
+2. Continue adding backend feature endpoints only when new requirements emerge
 
 ### For Frontend Developer
 
@@ -254,7 +255,7 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 **What's NOT Ready** (Current Gaps):
 
 - Authorization policy coverage across all route groups for future module additions
-- Feature endpoints beyond auth, organization, student/professor core + writes, and announcement/notification modules
+- Feature endpoints beyond auth, organization, student/professor core + writes, announcement/notification modules, and admin analytics/webhook support
 - Frontend project scaffold and UI implementation
 - Comprehensive integration and E2E test coverage
 

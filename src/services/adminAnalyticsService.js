@@ -27,7 +27,13 @@ export async function getRatingsSummary({ academic_term_id: academicTermId } = {
   return query;
 }
 
-export async function getAttendanceSummary({ academic_term_id: academicTermId } = {}) {
+export async function getAttendanceSummary({
+  academic_term_id: academicTermId,
+  section_id: sectionId,
+  course_id: courseId,
+  from_date: fromDate,
+  to_date: toDate,
+} = {}) {
   const query = db('attendance_records as ar')
     .join('attendance_sessions as ses', 'ses.id', 'ar.attendance_session_id')
     .join('sections as s', 's.id', 'ses.section_id')
@@ -43,6 +49,8 @@ export async function getAttendanceSummary({ academic_term_id: academicTermId } 
       't.name as term_name',
       't.academic_year as term_academic_year',
       't.semester as term_semester',
+      db.raw('COUNT(DISTINCT ses.id)::int as session_count'),
+      db.raw('COUNT(DISTINCT ar.student_id)::int as student_count'),
       db.raw('COUNT(ar.id)::int as total_records'),
       db.raw("SUM(CASE WHEN ar.status = 'present' THEN 1 ELSE 0 END)::int as present_count"),
       db.raw("SUM(CASE WHEN ar.status = 'absent' THEN 1 ELSE 0 END)::int as absent_count"),
@@ -53,6 +61,22 @@ export async function getAttendanceSummary({ academic_term_id: academicTermId } 
 
   if (academicTermId) {
     query.andWhere('s.academic_term_id', academicTermId);
+  }
+
+  if (sectionId) {
+    query.andWhere('s.id', sectionId);
+  }
+
+  if (courseId) {
+    query.andWhere('c.id', courseId);
+  }
+
+  if (fromDate) {
+    query.andWhere('ses.date', '>=', fromDate);
+  }
+
+  if (toDate) {
+    query.andWhere('ses.date', '<=', toDate);
   }
 
   return query;
