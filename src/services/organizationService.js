@@ -146,6 +146,21 @@ export async function patchFaculty(user, facultyId, payload) {
   return updateFacultyById(facultyId, payload);
 }
 
+export async function removeFaculty(user, facultyId) {
+  if (!hasRole(user, 'admin', 'university_admin')) {
+    const error = new Error('Forbidden: insufficient role permissions');
+    error.status = 403;
+    throw error;
+  }
+
+  const current = await getFacultyById(facultyId);
+  if (!current) {
+    return false;
+  }
+
+  return db('faculties').where({ id: facultyId }).del();
+}
+
 export async function addDepartment(user, payload) {
   assertCanManageDepartment(user, payload.faculty_id);
   return createDepartment(payload);
@@ -163,6 +178,16 @@ export async function patchDepartment(user, departmentId, payload) {
   return updateDepartmentById(departmentId, payload);
 }
 
+export async function removeDepartment(user, departmentId) {
+  const current = await getDepartmentById(departmentId);
+  if (!current) {
+    return false;
+  }
+
+  assertCanManageDepartment(user, current.faculty_id);
+  return db('departments').where({ id: departmentId }).del();
+}
+
 export default {
   getUniversity,
   getFaculties,
@@ -171,8 +196,10 @@ export default {
   patchUniversity,
   addFaculty,
   patchFaculty,
+  removeFaculty,
   addDepartment,
   patchDepartment,
+  removeDepartment,
   addUniversityVicePresident,
   patchUniversityVicePresident,
   removeUniversityVicePresident,

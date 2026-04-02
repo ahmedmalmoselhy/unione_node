@@ -22,6 +22,14 @@ import adminImportTemplateRoutes from './routes/adminImportTemplateRoutes.js';
 import adminImportRoutes from './routes/adminImportRoutes.js';
 import adminAcademicTermRoutes from './routes/adminAcademicTermRoutes.js';
 import adminProfessorRoutes from './routes/adminProfessorRoutes.js';
+import adminCourseRoutes from './routes/adminCourseRoutes.js';
+import adminSectionRoutes from './routes/adminSectionRoutes.js';
+import adminStudentRoutes from './routes/adminStudentRoutes.js';
+import adminEmployeeRoutes from './routes/adminEmployeeRoutes.js';
+import adminEnrollmentRoutes from './routes/adminEnrollmentRoutes.js';
+import adminGradeRoutes from './routes/adminGradeRoutes.js';
+import adminAssignmentRoutes from './routes/adminAssignmentRoutes.js';
+import adminReportsRoutes from './routes/adminReportsRoutes.js';
 import { localeMiddleware } from './middleware/locale.js';
 
 dotenv.config();
@@ -70,6 +78,14 @@ app.use('/api/admin/import-templates', adminImportTemplateRoutes);
 app.use('/api/admin/imports', adminImportRoutes);
 app.use('/api/admin/academic-terms', adminAcademicTermRoutes);
 app.use('/api/admin/professors', adminProfessorRoutes);
+app.use('/api/admin/courses', adminCourseRoutes);
+app.use('/api/admin/sections', adminSectionRoutes);
+app.use('/api/admin/students', adminStudentRoutes);
+app.use('/api/admin/employees', adminEmployeeRoutes);
+app.use('/api/admin/enrollments', adminEnrollmentRoutes);
+app.use('/api/admin/grades', adminGradeRoutes);
+app.use('/api/admin', adminAssignmentRoutes);
+app.use('/api/admin', adminReportsRoutes);
 app.use('/api/admin/webhooks', adminWebhookRoutes);
 
 // 404 handler

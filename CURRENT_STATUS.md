@@ -93,6 +93,15 @@
 - ✅ University vice-president CRUD implemented (`GET/POST/PATCH/DELETE /api/organization/university/vice-presidents`)
 - ✅ Academic-term CRUD implemented (`GET/POST/PATCH/DELETE /api/admin/academic-terms`)
 - ✅ Professor admin CRUD implemented (`GET/POST/PATCH/DELETE /api/admin/professors`)
+- ✅ Course admin CRUD implemented (`GET/POST/PATCH/DELETE /api/admin/courses`)
+- ✅ Section admin CRUD implemented (`GET/POST/PATCH/DELETE /api/admin/sections`)
+- ✅ Student admin CRUD + transfer implemented (`GET/POST/PATCH/DELETE /api/admin/students`, `POST /api/admin/students/:id/transfer`)
+- ✅ Employee admin CRUD implemented (`GET/POST/PATCH/DELETE /api/admin/employees`)
+- ✅ Enrollment admin CRUD implemented (`GET/POST/PATCH/DELETE /api/admin/enrollments`)
+- ✅ Grade admin management endpoints implemented (`GET/POST/PUT/DELETE /api/admin/grades`)
+- ✅ Faculty and department delete endpoints implemented (`DELETE /api/organization/faculties/:id`, `DELETE /api/organization/departments/:id`)
+- ✅ Admin assignment endpoints implemented for faculty admins, department admins, and department heads
+- ✅ Admin report alias endpoints implemented (`GET /api/admin/audit-logs`, `GET /api/admin/ratings`, `GET /api/admin/schedules`)
 - ✅ Webhook dead-letter endpoints implemented (`GET /api/webhooks/dead-letter`, `POST /api/webhooks/dead-letter/:deliveryId/retry`)
 - ✅ Notification quiet-hours controls implemented (`GET/PUT /api/notifications/quiet-hours`)
 - ✅ Admin route authorization aligned with scoped admin roles for analytics and webhook management routes
@@ -227,8 +236,8 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 
 1. Mirror the remaining Laravel dashboard/admin CRUD, import/export, locale, audit-log, and stats routes in Node
 2. Continue expanding policy coverage and scope-specific access checks as those routes are added
-3. Close the remaining Laravel dashboard resource families, especially course, section, enrollment, and portal-adjacent admin workflows
-4. Finish student admin CRUD and the remaining dashboard assignment workflows after professors
+3. Backfill integration tests for the new admin CRUD/assignment/report route families
+4. Tighten scoped-admin filtering behavior on the newly added admin resource endpoints
 
 ### For Frontend Developer
 

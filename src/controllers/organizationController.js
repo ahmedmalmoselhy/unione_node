@@ -7,8 +7,10 @@ import {
   patchUniversity,
   addFaculty,
   patchFaculty,
+  removeFaculty,
   addDepartment,
   patchDepartment,
+  removeDepartment,
   addUniversityVicePresident,
   patchUniversityVicePresident,
   removeUniversityVicePresident,
@@ -102,6 +104,24 @@ export async function updateFaculty(req, res, next) {
   }
 }
 
+export async function deleteFaculty(req, res, next) {
+  try {
+    const id = Number(req.params.id);
+    const deleted = await removeFaculty(req.user, id);
+
+    if (!deleted) {
+      return res.status(404).json(errorResponse('Faculty not found', 404));
+    }
+
+    return res.status(200).json(success({ deleted: true }, 'Faculty deleted successfully', 200));
+  } catch (error) {
+    if (error.code === '23503') {
+      return res.status(409).json(errorResponse('Faculty cannot be deleted because it is referenced by other records', 409));
+    }
+    return next(error);
+  }
+}
+
 export async function createDepartment(req, res, next) {
   try {
     const data = await addDepartment(req.user, req.body);
@@ -127,6 +147,24 @@ export async function updateDepartment(req, res, next) {
   } catch (error) {
     if (error.code === '23505') {
       return res.status(409).json(errorResponse('Duplicate department code or unique value', 409));
+    }
+    return next(error);
+  }
+}
+
+export async function deleteDepartment(req, res, next) {
+  try {
+    const id = Number(req.params.id);
+    const deleted = await removeDepartment(req.user, id);
+
+    if (!deleted) {
+      return res.status(404).json(errorResponse('Department not found', 404));
+    }
+
+    return res.status(200).json(success({ deleted: true }, 'Department deleted successfully', 200));
+  } catch (error) {
+    if (error.code === '23503') {
+      return res.status(409).json(errorResponse('Department cannot be deleted because it is referenced by other records', 409));
     }
     return next(error);
   }

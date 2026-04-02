@@ -85,3 +85,11 @@ export const updateDepartmentSchema = Joi.object({
   is_active: Joi.boolean().optional(),
   logo_path: Joi.string().max(255).allow(null, '').optional(),
 }).min(1);
+
+export const facultyIdParamSchema = Joi.object({
+  id: Joi.number().integer().positive().required(),
+});
+
+export const departmentIdParamSchema = Joi.object({
+  id: Joi.number().integer().positive().required(),
+});

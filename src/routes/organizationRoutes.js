@@ -10,8 +10,10 @@ import {
   updateUniversity,
   createFaculty,
   updateFaculty,
+  deleteFaculty,
   createDepartment,
   updateDepartment,
+  deleteDepartment,
   createVicePresident,
   updateVicePresident,
   deleteVicePresident,
@@ -50,9 +52,11 @@ router.delete('/university/vice-presidents/:id', writeLimiter, authorizeAny(...h
 router.get('/faculties', validate(facultyListSchema, 'query'), faculties);
 router.post('/faculties', writeLimiter, authorizeAny(...highRoles), validate(createFacultySchema), createFaculty);
 router.patch('/faculties/:id', writeLimiter, authorizeAny(...highRoles), validate(entityIdParamSchema, 'params'), validate(updateFacultySchema), updateFaculty);
+router.delete('/faculties/:id', writeLimiter, authorizeAny(...highRoles), validate(entityIdParamSchema, 'params'), deleteFaculty);
 
 router.get('/departments', validate(departmentListSchema, 'query'), departments);
 router.post('/departments', writeLimiter, authorizeAny(...departmentWriteRoles), validate(createDepartmentSchema), createDepartment);
 router.patch('/departments/:id', writeLimiter, authorizeAny(...departmentWriteRoles), validate(entityIdParamSchema, 'params'), validate(updateDepartmentSchema), updateDepartment);
+router.delete('/departments/:id', writeLimiter, authorizeAny(...departmentWriteRoles), validate(entityIdParamSchema, 'params'), deleteDepartment);
 
 export default router;
