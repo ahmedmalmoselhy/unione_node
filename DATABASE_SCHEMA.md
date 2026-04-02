@@ -1,19 +1,11 @@
 # UniOne Database Schema Reference
 
-## PostgreSQL Connection
-```
-Host: 127.0.0.1
-Port: 5432
-Database: unione_db
-User: unione
-Password: 241996
-```
-
 ---
 
 ## Table Structure Reference
 
 ### 1. universities
+
 ```sql
 id (PK)
 name (VARCHAR)
@@ -31,6 +23,7 @@ created_at, updated_at
 ```
 
 ### 2. roles
+
 ```sql
 id (PK)
 name (VARCHAR, UNIQUE)
@@ -40,6 +33,7 @@ created_at, updated_at
 ```
 
 ### 3. users
+
 ```sql
 id (PK)
 national_id (VARCHAR, UNIQUE)
@@ -58,6 +52,7 @@ created_at, updated_at, deleted_at
 ```
 
 ### 4. role_user (Pivot Table)
+
 ```sql
 id (PK)
 user_id (FK→users)
@@ -68,6 +63,7 @@ created_at, updated_at
 ```
 
 ### 5. faculties
+
 ```sql
 id (PK)
 university_id (FK→universities)
@@ -79,6 +75,7 @@ created_at, updated_at
 ```
 
 ### 6. departments
+
 ```sql
 id (PK)
 faculty_id (FK→faculties)
@@ -93,6 +90,7 @@ created_at, updated_at
 ```
 
 ### 7. professors
+
 ```sql
 id (PK)
 user_id (FK→users, UNIQUE)
@@ -106,6 +104,7 @@ created_at, updated_at
 ```
 
 ### 8. employees
+
 ```sql
 id (PK)
 user_id (FK→users, UNIQUE)
@@ -117,6 +116,7 @@ created_at, updated_at
 ```
 
 ### 9. students
+
 ```sql
 id (PK)
 user_id (FK→users, UNIQUE)
@@ -134,6 +134,7 @@ created_at, updated_at
 ```
 
 ### 10. student_department_histories
+
 ```sql
 id (PK)
 student_id (FK→students)
@@ -145,6 +146,7 @@ created_at, updated_at
 ```
 
 ### 11. courses
+
 ```sql
 id (PK)
 code (VARCHAR, UNIQUE)
@@ -161,6 +163,7 @@ created_at, updated_at
 ```
 
 ### 12. department_course (Pivot)
+
 ```sql
 id (PK)
 department_id (FK→departments)
@@ -170,6 +173,7 @@ created_at, updated_at
 ```
 
 ### 13. course_prerequisites (Self-Referential)
+
 ```sql
 id (PK)
 course_id (FK→courses)
@@ -178,6 +182,7 @@ created_at, updated_at
 ```
 
 ### 14. academic_terms
+
 ```sql
 id (PK)
 name (VARCHAR) - "Spring 2025", "Fall 2024"
@@ -190,6 +195,7 @@ created_at, updated_at
 ```
 
 ### 15. sections
+
 ```sql
 id (PK)
 course_id (FK→courses)
@@ -202,6 +208,7 @@ created_at, updated_at
 ```
 
 ### 16. enrollments
+
 ```sql
 id (PK)
 student_id (FK→students)
@@ -214,6 +221,7 @@ created_at, updated_at
 ```
 
 ### 17. enrollment_waitlists
+
 ```sql
 id (PK)
 student_id (FK→students)
@@ -226,6 +234,7 @@ created_at, updated_at
 ```
 
 ### 18. grades
+
 ```sql
 id (PK)
 enrollment_id (FK→enrollments, UNIQUE)
@@ -236,6 +245,7 @@ created_at, updated_at
 ```
 
 ### 19. student_term_gpas
+
 ```sql
 id (PK)
 student_id (FK→students)
@@ -247,6 +257,7 @@ UNIQUE (student_id, academic_term_id)
 ```
 
 ### 20. announcements (University-wide)
+
 ```sql
 id (PK)
 user_id (FK→users)
@@ -258,6 +269,7 @@ created_at, updated_at
 ```
 
 ### 21. announcement_reads (Pivot)
+
 ```sql
 id (PK)
 user_id (FK→users)
@@ -267,6 +279,7 @@ UNIQUE (user_id, announcement_id)
 ```
 
 ### 22. section_announcements (Course-specific)
+
 ```sql
 id (PK)
 section_id (FK→sections)
@@ -278,6 +291,7 @@ created_at, updated_at
 ```
 
 ### 23. attendance_sessions
+
 ```sql
 id (PK)
 section_id (FK→sections)
@@ -288,6 +302,7 @@ created_at, updated_at
 ```
 
 ### 24. attendance_records
+
 ```sql
 id (PK)
 attendance_session_id (FK→attendance_sessions)
@@ -298,6 +313,7 @@ created_at, updated_at
 ```
 
 ### 25. course_ratings
+
 ```sql
 id (PK)
 enrollment_id (FK→enrollments, UNIQUE)
@@ -308,6 +324,7 @@ created_at, updated_at
 ```
 
 ### 26. audit_logs
+
 ```sql
 id (PK)
 user_id (FK→users, NULL)
@@ -322,6 +339,7 @@ created_at (TIMESTAMP) - NOT NULL but managed by app
 ```
 
 ### 27. webhooks
+
 ```sql
 id (PK)
 user_id (FK→users)
@@ -335,6 +353,7 @@ created_at, updated_at
 ```
 
 ### 28. webhook_deliveries
+
 ```sql
 id (PK)
 webhook_id (FK→webhooks)
@@ -348,6 +367,7 @@ created_at, updated_at
 ```
 
 ### 29. university_vice_presidents
+
 ```sql
 id (PK)
 user_id (FK→users)
@@ -358,6 +378,7 @@ created_at, updated_at
 ```
 
 ### 30. notifications (Laravel Notifications Table)
+
 ```sql
 id (PK, UUID or String)
 notifiable_type (VARCHAR) - "App\Models\User"
@@ -369,6 +390,7 @@ created_at, updated_at
 ```
 
 ### 31. password_reset_tokens
+
 ```sql
 email (VARCHAR, PRIMARY KEY)
 token (VARCHAR)
@@ -376,6 +398,7 @@ created_at (TIMESTAMP)
 ```
 
 ### 32. personal_access_tokens (Sanctum)
+
 ```sql
 id (PK)
 tokenable_type (VARCHAR) - "App\Models\User"
@@ -389,6 +412,7 @@ created_at, updated_at
 ```
 
 ### 33. cache (Laravel Cache Table)
+
 ```sql
 key (VARCHAR, PRIMARY KEY)
 value (MEDIUMTEXT)
@@ -396,6 +420,7 @@ expiration (INTEGER)
 ```
 
 ### 34. jobs (Laravel Queue Table)
+
 ```sql
 id (PK)
 queue (VARCHAR)
@@ -450,11 +475,13 @@ created_at (TIMESTAMP)
 ## Key Considerations
 
 ### Foreign Keys
+
 - All ForeignKey constraints should be enabled
 - ON DELETE CASCADE for dependent records
 - ON UPDATE CASCADE for parent updates
 
 ### Indexes
+
 - Primary keys on all tables (automatic)
 - UNIQUE on: national_id, email, course code, student number, staff number
 - Foreign keys should auto-index
@@ -464,16 +491,19 @@ created_at (TIMESTAMP)
   - (section_id, student_id) on attendance_records
 
 ### Soft Deletes
+
 - Only on users table
 - Use `deleted_at` field
 - Query filters must exclude soft-deleted records
 
 ### Timestamps
+
 - All tables except audit_logs use created_at, updated_at
 - audit_logs manages its own created_at
 - Some tables have business timestamps (published_at, hired_at, etc.)
 
 ### JSONB Fields
+
 - schedule on sections: `{ days: [1,3,5], start_time, end_time, location }`
 - events on webhooks: `["enrollment.created", "grade.submitted", ...]`
 - permissions on roles: `{ "create_users", "edit_grades", ... }`
@@ -482,6 +512,7 @@ created_at (TIMESTAMP)
 - payload on webhook_deliveries: event data sent
 
 ### Type Mappings
+
 - Student status enum: active, graduated, suspended
 - Enrollment status enum: active, completed, dropped
 - Attendance status enum: present, absent, late
@@ -493,7 +524,7 @@ created_at (TIMESTAMP)
 
 ## Relationships Overview
 
-```
+```bash
 User (1) ─→ (N) RoleUser
 User (1) ─→ (1) Student
 User (1) ─→ (1) Professor
@@ -540,6 +571,7 @@ Notification ─→ User (polymorphic via notifiable)
 ## Data Volume Estimation
 
 For a typical medium-sized university:
+
 - Users: 10,000-50,000
 - Students: 5,000-20,000
 - Faculty/Professors: 200-500

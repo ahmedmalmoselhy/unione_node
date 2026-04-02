@@ -3,7 +3,8 @@
 ## Authentication Endpoints
 
 ### Public Routes (Rate Limited)
-```
+
+```bash
 POST /api/auth/login
 ├── Rate Limit: throttle:api.login
 ├── Auth: None
@@ -24,7 +25,8 @@ POST /api/auth/reset-password
 ```
 
 ### Protected Routes (Authenticated)
-```
+
+```bash
 POST /api/auth/logout
 ├── Rate Limit: throttle:api (60 req/min)
 ├── Auth: Bearer token
@@ -73,7 +75,8 @@ DELETE /api/auth/tokens/{tokenId}
 ## Student Portal Endpoints
 
 ### Profile & Academic
-```
+
+```bash
 GET /api/student/profile
 ├── Auth: Bearer token + Role: student
 ├── Returns: { student_number, faculty, department, gpa, standing }
@@ -100,7 +103,8 @@ GET /api/student/academic-history
 ```
 
 ### Enrollment Management
-```
+
+```bash
 GET /api/student/enrollments
 ├── Auth: Bearer token + Role: student
 ├── Query: ?status=active, ?academic_term_id=
@@ -132,7 +136,8 @@ DELETE /api/student/waitlist/{sectionId}
 ```
 
 ### Schedule & Attendance
-```
+
+```bash
 GET /api/student/schedule
 ├── Auth: Bearer token + Role: student
 ├── Query: ?academic_term_id=
@@ -150,7 +155,8 @@ GET /api/student/attendance
 ```
 
 ### Ratings & Announcements
-```
+
+```bash
 GET /api/student/ratings
 ├── Auth: Bearer token + Role: student
 ├── Query: ?academic_term_id=
@@ -173,7 +179,8 @@ GET /api/student/sections/{sectionId}/announcements
 ## Professor Portal Endpoints
 
 ### Profile & Teaching Assignment
-```
+
+```bash
 GET /api/professor/profile
 ├── Auth: Bearer token + Role: professor
 ├── Returns: { staff_number, department, specialization, academic_rank }
@@ -190,7 +197,8 @@ GET /api/professor/schedule
 ```
 
 ### Student & Grade Management
-```
+
+```bash
 GET /api/professor/sections/{sectionId}/students
 ├── Auth: Bearer token + Role: professor
 ├── Query: ?enrollment_status=active
@@ -210,7 +218,8 @@ POST /api/professor/sections/{sectionId}/grades
 ```
 
 ### Attendance Management
-```
+
+```bash
 GET /api/professor/sections/{sectionId}/attendance
 ├── Auth: Bearer token + Role: professor
 ├── Query: ?limit=20
@@ -233,7 +242,8 @@ PUT /api/professor/sections/{sectionId}/attendance/{sessionId}
 ```
 
 ### Announcements (Section-Specific)
-```
+
+```bash
 GET /api/professor/sections/{sectionId}/announcements
 ├── Auth: Bearer token + Role: professor
 ├── Query: ?limit=20
@@ -255,7 +265,8 @@ DELETE /api/professor/sections/{sectionId}/announcements/{announcementId}
 ## Shared Endpoints (Any Authenticated User)
 
 ### Announcements (University-Wide)
-```
+
+```bash
 GET /api/announcements
 ├── Auth: Bearer token
 ├── Query: ?limit=20, ?offset=0, ?unread_only=false
@@ -268,7 +279,8 @@ POST /api/announcements/{announcementId}/read
 ```
 
 ### Notifications
-```
+
+```bash
 GET /api/notifications
 ├── Auth: Bearer token
 ├── Query: ?limit=20, ?offset=0, ?unread_only=false
@@ -295,7 +307,8 @@ DELETE /api/notifications/{notificationId}
 ## Admin Endpoints
 
 ### Webhook Management
-```
+
+```bash
 GET /api/admin/webhooks
 ├── Auth: Bearer token + Role: admin|faculty_admin|department_admin
 ├── Query: ?limit=20, ?is_active=true
@@ -328,6 +341,7 @@ GET /api/admin/webhooks/{webhookId}/deliveries
 ## Response Format Standards
 
 ### Success Response
+
 ```json
 {
   "status": "success",
@@ -337,6 +351,7 @@ GET /api/admin/webhooks/{webhookId}/deliveries
 ```
 
 ### Error Response
+
 ```json
 {
   "status": "error",
@@ -351,6 +366,7 @@ GET /api/admin/webhooks/{webhookId}/deliveries
 ```
 
 ### Pagination Response
+
 ```json
 {
   "status": "success",
@@ -369,10 +385,12 @@ GET /api/admin/webhooks/{webhookId}/deliveries
 ## Rate Limiting Rules
 
 ### Public Routes
+
 - `throttle:api.login` - 5 attempts per 15 minutes
 - `throttle:api.password` - 3 attempts per 60 minutes
 
 ### Authenticated Routes
+
 - `throttle:api` - 60 requests per minute (default)
 - `throttle:api.enroll` - 10 enrollments per hour
 - `throttle:api.grade` - 100 grades per hour
@@ -382,7 +400,7 @@ GET /api/admin/webhooks/{webhookId}/deliveries
 ## HTTP Status Codes
 
 | Code | Meaning | Scenario |
-|------|---------|----------|
+| ------ | --------- | ---------- |
 | 200 | OK | Successful GET/POST/PATCH |
 | 201 | Created | Resource successfully created |
 | 204 | No Content | DELETE successful |
@@ -399,26 +417,30 @@ GET /api/admin/webhooks/{webhookId}/deliveries
 ## Query Parameters Conventions
 
 ### Filters
-```
+
+```bash
 ?status=active
 ?department_id=5
 ?academic_term_id=12
 ```
 
 ### Pagination
-```
+
+```bash
 ?page=1&limit=20
 ?offset=0&limit=50
 ```
 
 ### Sorting
-```
+
+```bash
 ?sort=created_at:desc
 ?sort=gpa:asc
 ```
 
 ### Relationships
-```
+
+```bash
 ?include=professor,course
 ?include=grades,enrollments
 ```
@@ -428,6 +450,7 @@ GET /api/admin/webhooks/{webhookId}/deliveries
 ## Webhook Events
 
 Possible events to subscribe:
+
 - `enrollment.created`
 - `enrollment.dropped`
 - `grade.submitted`
@@ -441,11 +464,12 @@ Possible events to subscribe:
 
 ## Authentication Header Format
 
-```
+```bash
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 Token structure:
+
 ```json
 {
   "sub": "user_id",

@@ -3,6 +3,7 @@
 ## Quick Overview
 
 The UniOne frontend is a React-based web application that provides three main portals:
+
 1. **Student Portal** - Course enrollment, grades, schedule, attendance
 2. **Professor Portal** - Grade submission, attendance tracking, announcements
 3. **Admin Portal** - System management, webhooks, audit logs
@@ -11,7 +12,7 @@ The UniOne frontend is a React-based web application that provides three main po
 
 ## Technology Stack
 
-```
+```bash
 Frontend Framework:  React 18+ (TypeScript)
 Build Tool:         Vite
 State Management:   Redux Toolkit + TanStack Query
@@ -60,7 +61,7 @@ npm run build
 
 ## Folder Structure at a Glance
 
-```
+```bash
 src/
 ├── components/          # Reusable React components
 │   ├── Auth/           # Login, password reset
@@ -84,17 +85,20 @@ src/
 ## Architecture Pattern
 
 ### Redux Flow
-```
+
+```bash
 User Action → Component → Dispatch Action → Reducer → State → Component Rerender
 ```
 
 ### Service Pattern
-```
+
+```bash
 Component → Hook (useQuery/useState) → Service → API → Backend
 ```
 
 ### Authentication Flow
-```
+
+```bash
 1. User opens app
 2. Check localStorage for token
 3. If token exists, validate with /auth/me
@@ -108,6 +112,7 @@ Component → Hook (useQuery/useState) → Service → API → Backend
 ## Component Template Examples
 
 ### Functional Component with Hooks
+
 ```typescript
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -148,6 +153,7 @@ export const StudentEnrollments = ({ studentId }: StudentEnrollmentsProps) => {
 ```
 
 ### Protected Route Example
+
 ```typescript
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -274,6 +280,7 @@ export default studentSlice.reducer;
 ## Key Hooks to Build
 
 ### useAuth
+
 ```typescript
 interface UseAuthReturn {
   user: User | null;
@@ -286,6 +293,7 @@ interface UseAuthReturn {
 ```
 
 ### useStudent
+
 ```typescript
 interface UseStudentReturn {
   student: Student | null;
@@ -298,6 +306,7 @@ interface UseStudentReturn {
 ```
 
 ### useProfessor
+
 ```typescript
 interface UseProfessorReturn {
   professor: Professor | null;
@@ -309,6 +318,7 @@ interface UseProfessorReturn {
 ```
 
 ### useNotifications
+
 ```typescript
 interface UseNotificationsReturn {
   notifications: Notification[];
@@ -324,6 +334,7 @@ interface UseNotificationsReturn {
 ## Important Features to Implement
 
 ### 1. Authentication
+
 - [x] Login page with email/password
 - [x] Token storage in localStorage/sessionStorage
 - [x] Token refresh on 401
@@ -331,6 +342,7 @@ interface UseNotificationsReturn {
 - [x] Protected routes
 
 ### 2. Student Features
+
 - [x] Course enrollment
 - [x] Drop courses
 - [x] View grades
@@ -344,6 +356,7 @@ interface UseNotificationsReturn {
 - [x] Academic history
 
 ### 3. Professor Features
+
 - [x] View sections
 - [x] View enrolled students
 - [x] Submit grades (bulk)
@@ -353,11 +366,13 @@ interface UseNotificationsReturn {
 - [x] View class schedule
 
 ### 4. Admin Features
+
 - [x] Webhook management
 - [x] Audit logs viewer
 - [x] System statistics
 
 ### 5. Shared Features
+
 - [x] Announcements
 - [x] Notifications (real-time)
 - [x] Profile update
@@ -399,6 +414,7 @@ rounded-lg, rounded-full
 ```
 
 ### Component Styling Example
+
 ```typescript
 // Button component with variants
 export const Button = ({ variant = 'primary', ...props }) => {
@@ -422,6 +438,7 @@ export const Button = ({ variant = 'primary', ...props }) => {
 ## Common Patterns
 
 ### Form Handling with React Hook Form
+
 ```typescript
 const { register, handleSubmit, formState: { errors } } = useForm({
   resolver: zodResolver(enrollmentSchema),
@@ -435,6 +452,7 @@ const { register, handleSubmit, formState: { errors } } = useForm({
 ```
 
 ### Loading State Management
+
 ```typescript
 const { isLoading } = useQuery({
   queryKey: ['enrollments'],
@@ -445,6 +463,7 @@ if (isLoading) return <SkeletonLoader rows={5} />;
 ```
 
 ### Error Handling
+
 ```typescript
 const { error } = useQuery({
   queryKey: ['enrollments'],
@@ -470,6 +489,7 @@ if (error) return <Alert type="error" message={error.message} />;
 ## Testing Patterns
 
 ### Component Test
+
 ```typescript
 import { render, screen } from '@testing-library/react';
 import { StudentDashboard } from './StudentDashboard';
@@ -483,6 +503,7 @@ describe('StudentDashboard', () => {
 ```
 
 ### Hook Test
+
 ```typescript
 import { renderHook, act } from '@testing-library/react';
 import { useStudent } from '@/hooks/useStudent';
@@ -503,12 +524,14 @@ it('should enroll in course', async () => {
 ## Deployment
 
 ### Build for Production
+
 ```bash
 npm run build
 # Creates optimized bundle in /dist
 ```
 
 ### Docker
+
 ```dockerfile
 FROM node:18-alpine AS builder
 WORKDIR /app
@@ -526,6 +549,7 @@ CMD ["serve", "-s", "dist", "-l", "3000"]
 ```
 
 ### Environment Variables
+
 ```
 VITE_API_URL=http://localhost:3000/api
 VITE_APP_NAME=UniOne
@@ -572,6 +596,7 @@ VITE_APP_NAME=UniOne
 4. **State Not Updating**: Redux dispatch not called → Check action creators
 
 ### Debug Mode
+
 ```typescript
 // Enable Redux DevTools
 const store = configureStore({

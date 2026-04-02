@@ -1,6 +1,7 @@
 # UniOne Backend - Implementation Plan for Node.js Clone
 
 ## Project Overview
+
 A comprehensive academic management system for universities with role-based access, course management, student enrollment, grading, attendance tracking, and webhook support.
 
 ---
@@ -8,6 +9,7 @@ A comprehensive academic management system for universities with role-based acce
 ## DATABASE MODELS & RELATIONSHIPS
 
 ### 1. **User Core Models**
+
 - **User** (Base authentication model)
   - Fields: national_id, first_name, last_name, email, password, phone, gender, date_of_birth, avatar_path, is_active, must_change_password
   - Relations: HasMany roles (RoleUser), HasOne Profile (Student/Professor/Employee)
@@ -22,6 +24,7 @@ A comprehensive academic management system for universities with role-based acce
   - Relations: HasMany faculties, HasMany departments, HasMany users (through roles)
 
 ### 2. **Organizational Structure**
+
 - **Faculty**
   - Fields: name, name_ar, code, university_id, logo_path
   - Relations: HasMany departments, HasMany students, HasMany professors
@@ -39,6 +42,7 @@ A comprehensive academic management system for universities with role-based acce
   - Relations: BelongsTo user, BelongsTo university
 
 ### 3. **Academic Models**
+
 - **Course**
   - Fields: code, name, name_ar, description, credit_hours, lecture_hours, lab_hours, level, is_elective, is_active
   - Relations: BelongsToMany departments, BelongsToMany prerequisites (self-referential), HasMany sections
@@ -72,6 +76,7 @@ A comprehensive academic management system for universities with role-based acce
   - Relations: BelongsTo student, BelongsTo department
 
 ### 4. **Grading & Performance**
+
 - **Grade**
   - Fields: enrollment_id, points, letter_grade, status (complete/incomplete)
   - Relations: BelongsTo enrollment
@@ -81,6 +86,7 @@ A comprehensive academic management system for universities with role-based acce
   - Relations: BelongsTo enrollment
 
 ### 5. **Attendance**
+
 - **AttendanceSession**
   - Fields: section_id, date, session_number, status
   - Relations: BelongsTo section, HasMany attendanceRecords
@@ -90,6 +96,7 @@ A comprehensive academic management system for universities with role-based acce
   - Relations: BelongsTo attendanceSession, BelongsTo student
 
 ### 6. **Communication**
+
 - **Announcement** (university-wide)
   - Fields: user_id, title, content, published_at, is_published
   - Relations: HasMany reads (AnnouncementRead), BelongsTo user
@@ -103,11 +110,13 @@ A comprehensive academic management system for universities with role-based acce
   - Relations: BelongsTo section, BelongsTo user
 
 ### 7. **Notifications**
+
 - **Notification** (Laravel notifications table)
   - Fields: notifiable_type, notifiable_id, type, data, read_at, created_at
   - System notifications for enrollments, grades, announcements, etc.
 
 ### 8. **System Features**
+
 - **AuditLog**
   - Fields: user_id, action, auditable_type, auditable_id, description, old_values (JSON), new_values (JSON), ip_address, created_at
   - Complete audit trail of all system changes
@@ -125,14 +134,16 @@ A comprehensive academic management system for universities with role-based acce
 ## API ENDPOINTS STRUCTURE
 
 ### Authentication Routes (Public + Rate Limited)
-```
+
+```bash
 POST   /api/auth/login                    - Login with email/password
 POST   /api/auth/forgot-password          - Request password reset
 POST   /api/auth/reset-password           - Reset password with token
 ```
 
 ### Authentication Routes (Protected)
-```
+
+```bash
 POST   /api/auth/logout                   - Logout user
 GET    /api/auth/me                       - Get current user profile
 POST   /api/auth/change-password          - Change password
@@ -143,13 +154,15 @@ DELETE /api/auth/tokens/{tokenId}         - Revoke specific token
 ```
 
 ### Announcements Routes (Protected)
-```
+
+```bash
 GET    /api/announcements                 - Get all announcements
 POST   /api/announcements/{id}/read       - Mark announcement as read
 ```
 
 ### Notifications Routes (Protected)
-```
+
+```bash
 GET    /api/notifications                 - Get user notifications
 POST   /api/notifications/read-all        - Mark all as read
 POST   /api/notifications/{id}/read       - Mark single as read
@@ -157,7 +170,8 @@ DELETE /api/notifications/{id}            - Delete notification
 ```
 
 ### Student Portal Routes (Protected - Student Role)
-```
+
+```bash
 GET    /api/student/profile               - Get student profile
 GET    /api/student/enrollments           - List enrolled courses
 POST   /api/student/enrollments           - Enroll in course
@@ -177,7 +191,8 @@ DELETE /api/student/waitlist/{sectionId}  - Remove from waitlist
 ```
 
 ### Professor Portal Routes (Protected - Professor Role)
-```
+
+```bash
 GET    /api/professor/profile             - Get professor profile
 GET    /api/professor/sections            - List taught sections
 GET    /api/professor/schedule            - Get teaching schedule
@@ -194,7 +209,8 @@ DELETE /api/professor/sections/{id}/announcements/{id} - Delete announcement
 ```
 
 ### Admin Routes (Protected - Admin/Faculty Admin/Department Admin Roles)
-```
+
+```bash
 GET    /api/admin/webhooks                - List webhooks
 POST   /api/admin/webhooks                - Create webhook
 PATCH  /api/admin/webhooks/{id}           - Update webhook
@@ -207,6 +223,7 @@ GET    /api/admin/webhooks/{id}/deliveries - Get webhook delivery history
 ## FEATURES BREAKDOWN
 
 ### 1. **Authentication & Authorization**
+
 - ✅ Email/Password login with rate limiting
 - ✅ JWT tokens (Sanctum equivalent) for stateless API
 - ✅ Role-Based Access Control (RBAC) with 6 roles
@@ -217,6 +234,7 @@ GET    /api/admin/webhooks/{id}/deliveries - Get webhook delivery history
 - ✅ Soft deletes for users
 
 ### 2. **Student Portal**
+
 - ✅ View personal profile and grades
 - ✅ Enroll/Drop courses (with waitlist)
 - ✅ View academic transcript (with PDF export)
@@ -229,6 +247,7 @@ GET    /api/admin/webhooks/{id}/deliveries - Get webhook delivery history
 - ✅ View section-specific announcements
 
 ### 3. **Professor Portal**
+
 - ✅ View teaching assignment
 - ✅ Manage student enrollments in sections
 - ✅ Submit and view grades
@@ -238,6 +257,7 @@ GET    /api/admin/webhooks/{id}/deliveries - Get webhook delivery history
 - ✅ View class schedule
 
 ### 4. **Course Management**
+
 - ✅ Course catalog with prerequisites
 - ✅ Multiple sections per course
 - ✅ Section capacity management
@@ -246,6 +266,7 @@ GET    /api/admin/webhooks/{id}/deliveries - Get webhook delivery history
 - ✅ Course rating by students
 
 ### 5. **Academic Management**
+
 - ✅ Academic terms management
 - ✅ Student GPA calculation (term-based)
 - ✅ Academic standing tracking
@@ -255,6 +276,7 @@ GET    /api/admin/webhooks/{id}/deliveries - Get webhook delivery history
 - ✅ Course prerequisites validation
 
 ### 6. **Organizational Structure**
+
 - ✅ Multi-university support
 - ✅ Faculty structure under universities
 - ✅ Departments under faculties
@@ -262,6 +284,7 @@ GET    /api/admin/webhooks/{id}/deliveries - Get webhook delivery history
 - ✅ Employee management
 
 ### 7. **Communication**
+
 - ✅ University-wide announcements
 - ✅ Section-specific announcements
 - ✅ Real-time notifications
@@ -269,6 +292,7 @@ GET    /api/admin/webhooks/{id}/deliveries - Get webhook delivery history
 - ✅ Notification management (list, read, delete)
 
 ### 8. **Audit & Security**
+
 - ✅ Complete audit logging of all changes
 - ✅ IP address tracking
 - ✅ Before/after value tracking
@@ -276,6 +300,7 @@ GET    /api/admin/webhooks/{id}/deliveries - Get webhook delivery history
 - ✅ Rate limiting on sensitive endpoints
 
 ### 9. **Webhooks & Integrations**
+
 - ✅ Webhooks for external system integration
 - ✅ Event-based triggers
 - ✅ Webhook secret for authentication
@@ -283,6 +308,7 @@ GET    /api/admin/webhooks/{id}/deliveries - Get webhook delivery history
 - ✅ Failure tracking and notifications
 
 ### 10. **Advanced Features**
+
 - ✅ iCalendar (.ics) export
 - ✅ PDF transcript generation
 - ✅ Batch grade submission
@@ -295,6 +321,7 @@ GET    /api/admin/webhooks/{id}/deliveries - Get webhook delivery history
 ## IMPLEMENTATION PHASES
 
 ### Phase 1: Foundation (Week 1)
+
 - [ ] Database schema creation (all migrations)
 - [ ] User & authentication models
 - [ ] Auth middleware & token management
@@ -302,6 +329,7 @@ GET    /api/admin/webhooks/{id}/deliveries - Get webhook delivery history
 - [ ] Docker setup for dev environment
 
 ### Phase 2: Student Portal (Week 2)
+
 - [ ] Student model & relationships
 - [ ] Course & Section models
 - [ ] Enrollment system
@@ -309,6 +337,7 @@ GET    /api/admin/webhooks/{id}/deliveries - Get webhook delivery history
 - [ ] Student controller & routes
 
 ### Phase 3: Professor Portal (Week 3)
+
 - [ ] Professor model & relationships
 - [ ] Grade submission
 - [ ] Attendance management
@@ -316,6 +345,7 @@ GET    /api/admin/webhooks/{id}/deliveries - Get webhook delivery history
 - [ ] Professor controller & routes
 
 ### Phase 4: Academic Features (Week 4)
+
 - [ ] Academic terms
 - [ ] GPA calculation service
 - [ ] Academic standing logic
@@ -323,12 +353,14 @@ GET    /api/admin/webhooks/{id}/deliveries - Get webhook delivery history
 - [ ] Schedule/iCal export
 
 ### Phase 5: Communication & Notifications (Week 5)
+
 - [ ] Announcements system
 - [ ] Real-time notifications
 - [ ] Email notifications templating
 - [ ] Notification controller & routes
 
 ### Phase 6: Advanced Features (Week 6)
+
 - [ ] Audit logging
 - [ ] Webhook system
 - [ ] Waitlist management
@@ -336,6 +368,7 @@ GET    /api/admin/webhooks/{id}/deliveries - Get webhook delivery history
 - [ ] Admin webhooks management
 
 ### Phase 7: Admin & Management (Week 7)
+
 - [ ] Admin dashboard
 - [ ] User management
 - [ ] Role scoping
@@ -343,6 +376,7 @@ GET    /api/admin/webhooks/{id}/deliveries - Get webhook delivery history
 - [ ] Admin controller & routes
 
 ### Phase 8: Testing & Optimization (Week 8)
+
 - [ ] Unit tests for all models
 - [ ] Integration tests for endpoints
 - [ ] Performance optimization
@@ -354,39 +388,46 @@ GET    /api/admin/webhooks/{id}/deliveries - Get webhook delivery history
 ## KEY CONSIDERATIONS FOR NODE.JS MIGRATION
 
 ### Database Layer
+
 - Use Knex.js for query builder and migrations
 - PostgreSQL connection pooling with `pg` package
 - Use same database (unione_db) for seamless transition
 
 ### Authentication
+
 - Replace Laravel Sanctum with JWT tokens (jsonwebtoken package)
 - Implement refresh token mechanism
 - Use bcryptjs for password hashing
 - Implement rate limiting (express-rate-limit)
 
 ### Middleware Stack
+
 - Express middleware for auth, validation, error handling
 - Custom middleware for role-based access
 - Error handling centralization
 - Request logging (morgan)
 
 ### Validation
+
 - Joi for schema validation
 - Custom validation rules
 - Consistent error response format
 
 ### File Handling
+
 - Support avatar uploads (multer)
 - PDF generation (pdfkit or puppeteer)
 - iCal generation (ical.js or similar)
 - File storage in local filesystem or cloud
 
 ### Notifications
+
 - Email service (nodemailer)
 - Queue system for async jobs (bull/bullmq)
 - Event emitter pattern
 
 ### Performance
+
 - Database connection pooling
 - Query optimization with eager loading
 - Caching layer (Redis)
@@ -396,7 +437,7 @@ GET    /api/admin/webhooks/{id}/deliveries - Get webhook delivery history
 
 ## REPOSITORY STRUCTURE FOR NODE.JS
 
-```
+```bash
 unione_node/
 ├── src/
 │   ├── config/
@@ -476,7 +517,9 @@ unione_node/
 ---
 
 ## DATABASE MIGRATION COUNT
-**Total Migrations: 52**
+
+### **Total Migrations: 52**
+
 - Core tables: Users, Roles, University structure (6)
 - Academic structure: Courses, Sections, Enrollments (8)
 - Grading & Performance: Grades, CourseRatings, StudentGPA (3)
@@ -488,6 +531,7 @@ unione_node/
 ---
 
 ## ESTIMATED EFFORT
+
 - Database Setup: 2-3 days
 - API Implementation: 2-3 weeks
 - Testing & Refinement: 1 week
@@ -497,6 +541,7 @@ unione_node/
 ---
 
 ## Success Criteria
+
 ✅ All 52 tables created and migrated
 ✅ All API endpoints functional
 ✅ Role-based access working correctly
@@ -510,11 +555,12 @@ unione_node/
 
 ---
 
-# FRONTEND/UI IMPLEMENTATION PLAN
+## FRONTEND/UI IMPLEMENTATION PLAN
 
 ## Technology Stack for Frontend
 
 ### Recommended Stack
+
 - **Framework**: React 18+ (JavaScript/TypeScript)
 - **State Management**: Redux Toolkit or TanStack Query
 - **Styling**: Tailwind CSS + Shadcn/ui components
@@ -531,6 +577,7 @@ unione_node/
 - **Type Safety**: TypeScript
 
 ### Alternative Options
+
 - **Vue.js 3** - More approachable learning curve, excellent ecosystem
 - **Next.js** - Full-stack React with SSR/SSG capabilities
 - **Angular** - Enterprise-grade, if organization prefers
@@ -539,7 +586,7 @@ unione_node/
 
 ## Frontend Project Structure
 
-```
+```bash
 unione_frontend/
 ├── public/
 │   ├── icons/
@@ -649,6 +696,7 @@ unione_frontend/
 ## UI COMPONENTS BREAKDOWN
 
 ### Authentication Pages (Week 1)
+
 - **Login Form**
   - Email/Password input
   - Forgot password link
@@ -669,6 +717,7 @@ unione_frontend/
   - Save/Cancel buttons
 
 ### Student Portal Dashboard (Week 2)
+
 - **Navigation/Sidebar**
   - Role-based menu items
   - Active course count badge
@@ -690,6 +739,7 @@ unione_frontend/
   - View schedule
 
 ### Enrollment Management (Week 2)
+
 - **Course Catalog View**
   - Search & filter courses
   - Course cards (code, name, credits, professor)
@@ -712,6 +762,7 @@ unione_frontend/
   - Notifications when moved to enrollment
 
 ### Academic Records (Week 3)
+
 - **Grades Dashboard**
   - Course list with grades
   - Letter grade display
@@ -734,6 +785,7 @@ unione_frontend/
   - iCal export button
 
 ### Attendance Tracking (Week 3)
+
 - **Attendance Records**
   - Table of attendance sessions
   - Status indicators (present/absent/late)
@@ -741,6 +793,7 @@ unione_frontend/
   - Filter by section
 
 ### Course Ratings (Week 3)
+
 - **Rating Form Modal**
   - Star rating (1-5 scale)
   - Feedback textarea
@@ -753,6 +806,7 @@ unione_frontend/
   - Edit/Delete options
 
 ### Professor Portal Dashboard (Week 4)
+
 - **Teaching Assignment Overview**
   - Sections taught (current term)
   - Enrollment count per section
@@ -767,6 +821,7 @@ unione_frontend/
   - Action buttons (grade, attendance, announcements)
 
 ### Grade Management (Week 4)
+
 - **Grade Input Form**
   - Bulk student list with input fields
   - Points/Letter grade display
@@ -781,6 +836,7 @@ unione_frontend/
   - Search student
 
 ### Attendance Management (Week 4)
+
 - **Attendance Session Creator**
   - Date picker
   - Session number input
@@ -794,6 +850,7 @@ unione_frontend/
   - Attendance percentage summary
 
 ### Announcements (Week 5)
+
 - **Announcement List**
   - University-wide announcements
   - Title and preview
@@ -808,6 +865,7 @@ unione_frontend/
   - List of posted announcements with delete option
 
 ### Notifications (Week 5)
+
 - **Notification Center**
   - List of notifications (most recent first)
   - Notification types (icons)
@@ -822,6 +880,7 @@ unione_frontend/
   - Click to open notification center
 
 ### Admin Portal (Week 6)
+
 - **Admin Dashboard**
   - System statistics
   - Recent audit logs
@@ -846,6 +905,7 @@ unione_frontend/
 ## UI PHASES & TIMELINE
 
 ### Phase 1: Core Authentication & Layout (Week 1)
+
 - [x] Project setup (Vite + React)
 - [ ] Login page
 - [ ] Layout components (Header, Sidebar, Footer)
@@ -853,6 +913,7 @@ unione_frontend/
 - [ ] Token storage & refresh
 
 ### Phase 2: Student Portal Core (Week 2)
+
 - [ ] Dashboard
 - [ ] Enrollments (view, search, filter)
 - [ ] Course catalog
@@ -861,6 +922,7 @@ unione_frontend/
 - [ ] Waitlist management
 
 ### Phase 3: Student Academic Records (Week 3)
+
 - [ ] Grades view
 - [ ] Transcript (table + PDF export)
 - [ ] Academic history
@@ -870,6 +932,7 @@ unione_frontend/
 - [ ] My ratings list
 
 ### Phase 4: Professor Portal (Week 4)
+
 - [ ] Professor dashboard
 - [ ] Sections overview
 - [ ] Student list per section
@@ -879,6 +942,7 @@ unione_frontend/
 - [ ] Section announcements
 
 ### Phase 5: Communication & Shared Features (Week 5)
+
 - [ ] Announcements list
 - [ ] Notifications system
 - [ ] Notification center/badge
@@ -886,12 +950,14 @@ unione_frontend/
 - [ ] Profile update modal
 
 ### Phase 6: Admin & Advanced Features (Week 6)
+
 - [ ] Admin dashboard
 - [ ] Webhook management UI
 - [ ] Audit logs viewer
 - [ ] User role management (advanced)
 
 ### Phase 7: Polish & Optimization (Week 7)
+
 - [ ] Error boundaries
 - [ ] Loading states (Skeleton loaders)
 - [ ] Empty states
@@ -901,6 +967,7 @@ unione_frontend/
 - [ ] Dark mode (optional)
 
 ### Phase 8: Testing & Deployment (Week 8)
+
 - [ ] Unit tests (components, hooks, utilities)
 - [ ] Integration tests (page navigation, data flow)
 - [ ] E2E tests (user workflows)
@@ -911,7 +978,7 @@ unione_frontend/
 
 ## COMPONENT DEPENDENCIES & RELATIONSHIPS
 
-```
+```bash
 App
 ├── AuthProvider
 │   ├── Login Page
@@ -952,6 +1019,7 @@ App
 ## API INTEGRATION POINTS
 
 ### Authentication Service
+
 ```typescript
 - login(email, password) → token + user
 - logout() → clear token
@@ -962,6 +1030,7 @@ App
 ```
 
 ### Student Service
+
 ```typescript
 - getEnrollments() → enrolled courses
 - enrollCourse(sectionId) → enrollment
@@ -975,6 +1044,7 @@ App
 ```
 
 ### Professor Service
+
 ```typescript
 - getSections() → taught sections
 - getSectionStudents(sectionId) → students
@@ -986,6 +1056,7 @@ App
 ```
 
 ### Shared Services
+
 ```typescript
 - getAnnouncements() → announcements
 - markAnnouncementRead(id) → confirmation
@@ -999,6 +1070,7 @@ App
 ## DESIGN SYSTEM & STYLING
 
 ### Color Palette
+
 ```css
 Primary:     #3B82F6 (Blue)
 Secondary:   #8B5CF6 (Purple)
@@ -1009,13 +1081,15 @@ Neutral:     #6B7280 (Gray)
 ```
 
 ### Typography
-```
+
+```bash
 Headings: Poppins or Inter (Sans-serif)
 Body:     Poppins or Inter (Sans-serif)
 Mono:     JetBrains Mono (Code)
 ```
 
 ### Responsive Breakpoints
+
 ```css
 Mobile:     < 640px
 Tablet:     640px - 1024px
@@ -1023,6 +1097,7 @@ Desktop:    > 1024px
 ```
 
 ### Component Library
+
 - Use Shadcn/ui for pre-built components
 - Customize with Tailwind CSS
 - Consistent spacing (4px base unit)
@@ -1033,6 +1108,7 @@ Desktop:    > 1024px
 ## STATE MANAGEMENT STRATEGY
 
 ### Redux Slices
+
 - **authSlice**: user, token, isAuthenticated, loading
 - **studentSlice**: enrollments, grades, transcript, schedule
 - **notificationSlice**: notifications, unreadCount
@@ -1040,6 +1116,7 @@ Desktop:    > 1024px
 - **errorSlice**: error messages and alerts
 
 ### React Query (Alternative/Complement)
+
 - Automatic caching of API responses
 - Background refetching
 - Optimistic updates
@@ -1050,11 +1127,13 @@ Desktop:    > 1024px
 ## PERFORMANCE OPTIMIZATION
 
 ### Code Splitting
+
 - Route-based code splitting (React.lazy)
 - Component-level lazy loading
 - Dynamic imports for heavy components
 
 ### Optimization Techniques
+
 - Memoization (React.memo, useMemo, useCallback)
 - Image optimization (lazy loading, compression)
 - Bundle size analysis (webpack-bundle-analyzer)
@@ -1062,6 +1141,7 @@ Desktop:    > 1024px
 - Service workers for offline support
 
 ### Core Web Vitals Targets
+
 - Largest Contentful Paint (LCP): < 2.5s
 - First Input Delay (FID): < 100ms
 - Cumulative Layout Shift (CLS): < 0.1
@@ -1071,6 +1151,7 @@ Desktop:    > 1024px
 ## ACCESSIBILITY REQUIREMENTS
 
 ### Features
+
 - Semantic HTML (nav, main, section, article)
 - ARIA labels for interactive elements
 - Keyboard navigation support
@@ -1080,6 +1161,7 @@ Desktop:    > 1024px
 - Form validation messages associated with inputs
 
 ### Testing
+
 - Axe DevTools for automated scanning
 - Manual testing with screen readers (NVDA, JAWS)
 - Keyboard-only navigation testing
@@ -1089,18 +1171,21 @@ Desktop:    > 1024px
 ## DEPLOYMENT STRATEGY
 
 ### Development
+
 ```bash
 npm run dev
 # Vite development server on http://localhost:5173
 ```
 
 ### Building
+
 ```bash
 npm run build
 # Optimized production bundle in /dist
 ```
 
 ### Docker Configuration
+
 ```dockerfile
 FROM node:18-alpine
 WORKDIR /app
@@ -1112,7 +1197,8 @@ CMD ["yarn", "preview"]
 ```
 
 ### Environment Variables
-```
+
+```bash
 VITE_API_URL=http://localhost:3000/api
 VITE_APP_NAME=UniOne
 VITE_LOG_LEVEL=debug
@@ -1123,13 +1209,15 @@ VITE_LOG_LEVEL=debug
 ## TESTING STRATEGY
 
 ### Unit Tests (Components, Hooks, Utilities)
-```
+
+```bash
 Frameworks: Jest + React Testing Library
 Coverage Target: 80%+
 ```
 
 ### Integration Tests (Page Navigation, Data Flow)
-```
+
+```bash
 Test User Workflows:
 - Login → Student Dashboard → Enroll → View Grades
 - Login → Professor → Grade Students
@@ -1137,7 +1225,8 @@ Test User Workflows:
 ```
 
 ### E2E Tests (Full User Scenarios)
-```
+
+```bash
 Framework: Cypress or Playwright
 Test Critical Paths:
 - Complete enrollment workflow
@@ -1150,7 +1239,7 @@ Test Critical Paths:
 ## ESTIMATED EFFORT (FRONTEND)
 
 | Phase | Focus | Duration |
-|-------|-------|----------|
+| ------- | ------- | ---------- |
 | **1** | Auth, Layout | 5 days |
 | **2** | Student Core | 4 days |
 | **3** | Academic Records | 4 days |
@@ -1166,7 +1255,7 @@ Test Critical Paths:
 ## FULL STACK TIMELINE
 
 | Component | Duration | Total |
-|-----------|----------|-------|
+| ----------- | ---------- | ------- |
 | Backend (Node.js) | 4-5 weeks | Week 1-5 |
 | Frontend (React) | 5-6 weeks | Week 1-6 |
 | **PARALLEL**: Both can be developed simultaneously after API contracts are defined | - | - |
