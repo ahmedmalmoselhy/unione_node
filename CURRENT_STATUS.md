@@ -1,6 +1,6 @@
 # UniOne Platform - Current Status Report
 
-**Last Updated**: April 2, 2026  
+**Last Updated**: April 8, 2026  
 **Project Phase**: Phase 1 Implementation In Progress  
 **Overall Status**: 🟡 **ACTIVE DEVELOPMENT**
 
@@ -111,6 +111,7 @@
 - ✅ Announcement write authorization aligned with scoped admin roles (`admin`, `university_admin`, `faculty_admin`, `department_admin`)
 - ✅ Additional business-rule guards added for admin student transfers and enrollment create/update flows
 - ✅ Integration test coverage added for scoped faculty-admin assignment blocking
+- ✅ GitHub Actions CI workflow added for Node project (`.github/workflows/node.yml`) with PostgreSQL service, migration/seed bootstrap, and automated test execution on push/PR to `master`
 
 ### Frontend Planning: ✅ **COMPLETE**
 

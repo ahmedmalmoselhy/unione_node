@@ -1,0 +1,57 @@
+name: Node CI
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: unione_db
+          POSTGRES_USER: unione
+          POSTGRES_PASSWORD: 241996
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U unione -d unione_db"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      NODE_ENV: test
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_NAME: unione_db
+      DB_USER: unione
+      DB_PASSWORD: 241996
+      JWT_SECRET: ci-jwt-secret
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run migrations
+        run: |
+          node --input-type=module -e "import db from './src/config/knex.js'; await db.migrate.latest(); await db.destroy();"
+
+      - name: Seed database
+        run: npm run seed:run
+
+      - name: Run tests
+        run: npm test
