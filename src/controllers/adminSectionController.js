@@ -12,6 +12,12 @@ import {
   createSectionExamSchedule,
   updateSectionExamSchedule,
   publishSectionExamSchedule,
+  listSectionGroupProjects,
+  createSectionGroupProject,
+  updateSectionGroupProject,
+  deleteSectionGroupProject,
+  addSectionGroupProjectMember,
+  removeSectionGroupProjectMember,
 } from '../services/adminSectionService.js';
 
 export async function index(req, res, next) {
@@ -197,6 +203,111 @@ export async function publishExamSchedule(req, res, next) {
   }
 }
 
+export async function listGroupProjects(req, res, next) {
+  try {
+    const sectionId = Number(req.params.id);
+    const data = await listSectionGroupProjects(sectionId, req.user);
+    return res.status(200).json(success(data, 'Section group projects fetched successfully', 200));
+  } catch (error) {
+    if (error.status === 404) {
+      return res.status(404).json(errorResponse(error.message, 404));
+    }
+    return next(error);
+  }
+}
+
+export async function storeGroupProject(req, res, next) {
+  try {
+    const sectionId = Number(req.params.id);
+    const data = await createSectionGroupProject(sectionId, req.body, req.user);
+    return res.status(201).json(success(data, 'Section group project created successfully', 201));
+  } catch (error) {
+    if (error.status === 404) {
+      return res.status(404).json(errorResponse(error.message, 404));
+    }
+    return next(error);
+  }
+}
+
+export async function updateGroupProject(req, res, next) {
+  try {
+    const sectionId = Number(req.params.id);
+    const projectId = Number(req.params.projectId);
+    const data = await updateSectionGroupProject(sectionId, projectId, req.body, req.user);
+    if (!data) {
+      return res.status(404).json(errorResponse('Group project not found', 404));
+    }
+    return res.status(200).json(success(data, 'Section group project updated successfully', 200));
+  } catch (error) {
+    if (error.status === 404) {
+      return res.status(404).json(errorResponse(error.message, 404));
+    }
+    if (error.status === 409) {
+      return res.status(409).json(errorResponse(error.message, 409));
+    }
+    return next(error);
+  }
+}
+
+export async function destroyGroupProject(req, res, next) {
+  try {
+    const sectionId = Number(req.params.id);
+    const projectId = Number(req.params.projectId);
+    const deleted = await deleteSectionGroupProject(sectionId, projectId, req.user);
+    if (!deleted) {
+      return res.status(404).json(errorResponse('Group project not found', 404));
+    }
+
+    return res.status(200).json(success({ deleted: true }, 'Section group project deleted successfully', 200));
+  } catch (error) {
+    if (error.status === 404) {
+      return res.status(404).json(errorResponse(error.message, 404));
+    }
+    return next(error);
+  }
+}
+
+export async function storeGroupProjectMember(req, res, next) {
+  try {
+    const sectionId = Number(req.params.id);
+    const projectId = Number(req.params.projectId);
+    const { member, created } = await addSectionGroupProjectMember(sectionId, projectId, req.body, req.user);
+    const statusCode = created ? 201 : 200;
+    const message = created ? 'Group project member added successfully' : 'Student already assigned to this group project';
+    return res.status(statusCode).json(success(member, message, statusCode));
+  } catch (error) {
+    if (error.status === 404) {
+      return res.status(404).json(errorResponse(error.message, 404));
+    }
+    if (error.status === 400) {
+      return res.status(400).json(errorResponse(error.message, 400));
+    }
+    if (error.status === 409) {
+      return res.status(409).json(errorResponse(error.message, 409));
+    }
+    return next(error);
+  }
+}
+
+export async function destroyGroupProjectMember(req, res, next) {
+  try {
+    const sectionId = Number(req.params.id);
+    const projectId = Number(req.params.projectId);
+    const memberId = Number(req.params.memberId);
+    const deleted = await removeSectionGroupProjectMember(sectionId, projectId, memberId, req.user);
+    if (!deleted) {
+      return res.status(404).json(errorResponse('Group project member not found', 404));
+    }
+
+    return res.status(200).json(success({ deleted: true }, 'Group project member removed successfully', 200));
+  } catch (error) {
+    if (error.status === 404) {
+      return res.status(404).json(errorResponse(error.message, 404));
+    }
+    return next(error);
+  }
+}
+
 export default {
   index,
   show,
@@ -210,4 +321,10 @@ export default {
   storeExamSchedule,
   updateExamSchedule,
   publishExamSchedule,
+  listGroupProjects,
+  storeGroupProject,
+  updateGroupProject,
+  destroyGroupProject,
+  storeGroupProjectMember,
+  destroyGroupProjectMember,
 };

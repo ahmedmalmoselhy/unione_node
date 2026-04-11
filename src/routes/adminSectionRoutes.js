@@ -16,6 +16,12 @@ import {
 	storeExamSchedule,
 	updateExamSchedule,
 	publishExamSchedule,
+	listGroupProjects,
+	storeGroupProject,
+	updateGroupProject,
+	destroyGroupProject,
+	storeGroupProjectMember,
+	destroyGroupProjectMember,
 } from '../controllers/adminSectionController.js';
 import {
 	entityIdParamSchema,
@@ -26,6 +32,11 @@ import {
 	adminSectionTeachingAssistantDeleteParamSchema,
 	adminSectionExamScheduleCreateSchema,
 	adminSectionExamScheduleUpdateSchema,
+	adminSectionGroupProjectParamSchema,
+	adminSectionGroupProjectCreateSchema,
+	adminSectionGroupProjectUpdateSchema,
+	adminSectionGroupProjectMemberCreateSchema,
+	adminSectionGroupProjectMemberDeleteParamSchema,
 } from '../validators/adminValidators.js';
 
 const router = express.Router();
@@ -69,5 +80,39 @@ router.patch(
 	updateExamSchedule,
 );
 router.post('/:id/exam-schedule/publish', writeLimiter, validate(entityIdParamSchema, 'params'), publishExamSchedule);
+router.get('/:id/group-projects', validate(entityIdParamSchema, 'params'), listGroupProjects);
+router.post(
+	'/:id/group-projects',
+	writeLimiter,
+	validate(entityIdParamSchema, 'params'),
+	validate(adminSectionGroupProjectCreateSchema),
+	storeGroupProject,
+);
+router.patch(
+	'/:id/group-projects/:projectId',
+	writeLimiter,
+	validate(adminSectionGroupProjectParamSchema, 'params'),
+	validate(adminSectionGroupProjectUpdateSchema),
+	updateGroupProject,
+);
+router.delete(
+	'/:id/group-projects/:projectId',
+	writeLimiter,
+	validate(adminSectionGroupProjectParamSchema, 'params'),
+	destroyGroupProject,
+);
+router.post(
+	'/:id/group-projects/:projectId/members',
+	writeLimiter,
+	validate(adminSectionGroupProjectParamSchema, 'params'),
+	validate(adminSectionGroupProjectMemberCreateSchema),
+	storeGroupProjectMember,
+);
+router.delete(
+	'/:id/group-projects/:projectId/members/:memberId',
+	writeLimiter,
+	validate(adminSectionGroupProjectMemberDeleteParamSchema, 'params'),
+	destroyGroupProjectMember,
+);
 
 export default router;

@@ -349,6 +349,39 @@ POST /api/admin/sections/{sectionId}/exam-schedule/publish
 
 ---
 
+### Section Group Projects
+
+```bash
+GET /api/admin/sections/{sectionId}/group-projects
+├── Auth: Bearer token + Role: admin|university_admin|faculty_admin|department_admin
+└── Returns: [group_projects]
+
+POST /api/admin/sections/{sectionId}/group-projects
+├── Auth: Bearer token + Role: admin|university_admin|faculty_admin|department_admin
+├── Body: { title, description?, due_at?, max_members?, is_active? }
+└── Returns: { group_project }
+
+PATCH /api/admin/sections/{sectionId}/group-projects/{projectId}
+├── Auth: Bearer token + Role: admin|university_admin|faculty_admin|department_admin
+├── Body: { title?, description?, due_at?, max_members?, is_active? }
+└── Returns: { group_project }
+
+DELETE /api/admin/sections/{sectionId}/group-projects/{projectId}
+├── Auth: Bearer token + Role: admin|university_admin|faculty_admin|department_admin
+└── Returns: { deleted: true }
+
+POST /api/admin/sections/{sectionId}/group-projects/{projectId}/members
+├── Auth: Bearer token + Role: admin|university_admin|faculty_admin|department_admin
+├── Body: { student_id }
+└── Returns: { group_project_member }
+
+DELETE /api/admin/sections/{sectionId}/group-projects/{projectId}/members/{memberId}
+├── Auth: Bearer token + Role: admin|university_admin|faculty_admin|department_admin
+└── Returns: { deleted: true }
+```
+
+---
+
 ### Webhook Management
 
 ```bash

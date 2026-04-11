@@ -214,6 +214,37 @@ export const adminSectionExamScheduleUpdateSchema = Joi.object({
   location: Joi.string().max(255).allow(null, '').optional(),
 }).min(1);
 
+export const adminSectionGroupProjectParamSchema = Joi.object({
+  id: Joi.number().integer().positive().required(),
+  projectId: Joi.number().integer().positive().required(),
+});
+
+export const adminSectionGroupProjectCreateSchema = Joi.object({
+  title: Joi.string().max(255).required(),
+  description: Joi.string().allow(null, '').optional(),
+  due_at: Joi.date().iso().allow(null).optional(),
+  max_members: Joi.number().integer().min(1).optional(),
+  is_active: Joi.boolean().optional(),
+});
+
+export const adminSectionGroupProjectUpdateSchema = Joi.object({
+  title: Joi.string().max(255).optional(),
+  description: Joi.string().allow(null, '').optional(),
+  due_at: Joi.date().iso().allow(null).optional(),
+  max_members: Joi.number().integer().min(1).optional(),
+  is_active: Joi.boolean().optional(),
+}).min(1);
+
+export const adminSectionGroupProjectMemberCreateSchema = Joi.object({
+  student_id: Joi.number().integer().positive().required(),
+});
+
+export const adminSectionGroupProjectMemberDeleteParamSchema = Joi.object({
+  id: Joi.number().integer().positive().required(),
+  projectId: Joi.number().integer().positive().required(),
+  memberId: Joi.number().integer().positive().required(),
+});
+
 export const adminStudentListQuerySchema = Joi.object({
   search: Joi.string().max(255).optional(),
   faculty_id: Joi.number().integer().positive().optional(),

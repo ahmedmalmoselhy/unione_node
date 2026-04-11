@@ -1,5 +1,12 @@
 import db from '../config/knex.js';
-import { applyCourseScope, assertCourseInScope, assertDepartmentInScope, assertSectionInScope, buildAdminScope } from '../utils/adminScope.js';
+import {
+  applyCourseScope,
+  assertCourseInScope,
+  assertDepartmentInScope,
+  assertSectionInScope,
+  assertStudentInScope,
+  buildAdminScope,
+} from '../utils/adminScope.js';
 
 function applySectionFilters(query, { search, courseId, professorId, academicTermId, isActive } = {}) {
   if (search) {
@@ -414,6 +421,265 @@ export async function publishSectionExamSchedule(sectionId, actor) {
   });
 }
 
+function baseSectionGroupProjectQuery(connection = db) {
+  return connection('group_projects as gp')
+    .select(
+      'gp.id',
+      'gp.section_id',
+      'gp.title',
+      'gp.description',
+      'gp.due_at',
+      'gp.max_members',
+      'gp.is_active',
+      'gp.created_by_user_id',
+      'gp.created_at',
+      'gp.updated_at'
+    );
+}
+
+function baseGroupProjectMemberQuery(connection = db) {
+  return connection('group_project_members as gpm')
+    .join('students as s', 's.id', 'gpm.student_id')
+    .join('users as u', 'u.id', 's.user_id')
+    .select(
+      'gpm.id',
+      'gpm.group_project_id',
+      'gpm.student_id',
+      'gpm.joined_at',
+      'gpm.created_at',
+      'gpm.updated_at',
+      's.student_number',
+      'u.first_name',
+      'u.last_name'
+    );
+}
+
+async function hydrateGroupProjectsWithMembers(connection, projects) {
+  if (!projects.length) {
+    return [];
+  }
+
+  const projectIds = projects.map((project) => Number(project.id));
+  const members = await baseGroupProjectMemberQuery(connection)
+    .whereIn('gpm.group_project_id', projectIds)
+    .orderBy('gpm.group_project_id', 'asc')
+    .orderBy('gpm.id', 'asc');
+
+  const membersByProject = new Map();
+  for (const member of members) {
+    if (!membersByProject.has(Number(member.group_project_id))) {
+      membersByProject.set(Number(member.group_project_id), []);
+    }
+    membersByProject.get(Number(member.group_project_id)).push(member);
+  }
+
+  return projects.map((project) => ({
+    ...project,
+    members: membersByProject.get(Number(project.id)) || [],
+  }));
+}
+
+async function getSectionGroupProjectById(connection, sectionId, projectId) {
+  return baseSectionGroupProjectQuery(connection)
+    .where('gp.section_id', Number(sectionId))
+    .andWhere('gp.id', Number(projectId))
+    .first();
+}
+
+async function getSectionGroupProjectWithMembers(connection, sectionId, projectId) {
+  const project = await getSectionGroupProjectById(connection, sectionId, projectId);
+  if (!project) {
+    return null;
+  }
+
+  const [hydrated] = await hydrateGroupProjectsWithMembers(connection, [project]);
+  return hydrated;
+}
+
+export async function listSectionGroupProjects(sectionId, actor) {
+  const scope = buildAdminScope(actor);
+  const normalizedSectionId = Number(sectionId);
+  await assertSectionInScope(db, scope, normalizedSectionId);
+
+  const projects = await baseSectionGroupProjectQuery(db)
+    .where('gp.section_id', normalizedSectionId)
+    .orderBy('gp.id', 'asc');
+
+  return hydrateGroupProjectsWithMembers(db, projects);
+}
+
+export async function createSectionGroupProject(sectionId, payload, actor) {
+  return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
+    const normalizedSectionId = Number(sectionId);
+
+    await assertSectionInScope(trx, scope, normalizedSectionId);
+
+    const [created] = await trx('group_projects')
+      .insert({
+        section_id: normalizedSectionId,
+        title: payload.title,
+        description: payload.description || null,
+        due_at: payload.due_at || null,
+        max_members: payload.max_members || 5,
+        is_active: payload.is_active ?? true,
+        created_by_user_id: actor?.id || null,
+        created_at: trx.fn.now(),
+        updated_at: trx.fn.now(),
+      })
+      .returning('id');
+
+    return getSectionGroupProjectWithMembers(trx, normalizedSectionId, created.id);
+  });
+}
+
+export async function updateSectionGroupProject(sectionId, projectId, payload, actor) {
+  return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
+    const normalizedSectionId = Number(sectionId);
+    const normalizedProjectId = Number(projectId);
+
+    await assertSectionInScope(trx, scope, normalizedSectionId);
+
+    const project = await getSectionGroupProjectById(trx, normalizedSectionId, normalizedProjectId);
+    if (!project) {
+      return null;
+    }
+
+    if (payload.max_members !== undefined) {
+      const currentMembersRow = await trx('group_project_members')
+        .where({ group_project_id: normalizedProjectId })
+        .count('* as count')
+        .first();
+      const currentMembers = Number(currentMembersRow?.count || 0);
+      if (currentMembers > Number(payload.max_members)) {
+        const error = new Error('max_members cannot be less than current member count');
+        error.status = 409;
+        throw error;
+      }
+    }
+
+    const patch = {};
+    for (const key of ['title', 'description', 'due_at', 'max_members', 'is_active']) {
+      if (payload[key] !== undefined) {
+        patch[key] = payload[key];
+      }
+    }
+
+    await trx('group_projects')
+      .where({ id: normalizedProjectId, section_id: normalizedSectionId })
+      .update({ ...patch, updated_at: trx.fn.now() });
+
+    return getSectionGroupProjectWithMembers(trx, normalizedSectionId, normalizedProjectId);
+  });
+}
+
+export async function deleteSectionGroupProject(sectionId, projectId, actor) {
+  return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
+    const normalizedSectionId = Number(sectionId);
+    const normalizedProjectId = Number(projectId);
+
+    await assertSectionInScope(trx, scope, normalizedSectionId);
+
+    const deleted = await trx('group_projects')
+      .where({ id: normalizedProjectId, section_id: normalizedSectionId })
+      .del();
+
+    return deleted > 0;
+  });
+}
+
+export async function addSectionGroupProjectMember(sectionId, projectId, payload, actor) {
+  return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
+    const normalizedSectionId = Number(sectionId);
+    const normalizedProjectId = Number(projectId);
+    const normalizedStudentId = Number(payload.student_id);
+
+    await assertSectionInScope(trx, scope, normalizedSectionId);
+
+    const project = await getSectionGroupProjectById(trx, normalizedSectionId, normalizedProjectId);
+    if (!project) {
+      const error = new Error('Group project not found');
+      error.status = 404;
+      throw error;
+    }
+
+    await assertStudentInScope(trx, scope, normalizedStudentId);
+
+    const enrollment = await trx('enrollments')
+      .where({ section_id: normalizedSectionId, student_id: normalizedStudentId })
+      .whereIn('status', ['registered', 'completed'])
+      .first();
+
+    if (!enrollment) {
+      const error = new Error('Student must be enrolled in this section');
+      error.status = 400;
+      throw error;
+    }
+
+    const existing = await baseGroupProjectMemberQuery(trx)
+      .where('gpm.group_project_id', normalizedProjectId)
+      .andWhere('gpm.student_id', normalizedStudentId)
+      .first();
+    if (existing) {
+      return { member: existing, created: false };
+    }
+
+    const countRow = await trx('group_project_members')
+      .where({ group_project_id: normalizedProjectId })
+      .count('* as count')
+      .first();
+    const memberCount = Number(countRow?.count || 0);
+    if (memberCount >= Number(project.max_members || 0)) {
+      const error = new Error('Group project is at maximum capacity');
+      error.status = 409;
+      throw error;
+    }
+
+    const [created] = await trx('group_project_members')
+      .insert({
+        group_project_id: normalizedProjectId,
+        student_id: normalizedStudentId,
+        joined_at: trx.fn.now(),
+        created_at: trx.fn.now(),
+        updated_at: trx.fn.now(),
+      })
+      .returning('id');
+
+    const member = await baseGroupProjectMemberQuery(trx)
+      .where('gpm.id', created.id)
+      .first();
+
+    return { member, created: true };
+  });
+}
+
+export async function removeSectionGroupProjectMember(sectionId, projectId, memberId, actor) {
+  return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
+    const normalizedSectionId = Number(sectionId);
+    const normalizedProjectId = Number(projectId);
+    const normalizedMemberId = Number(memberId);
+
+    await assertSectionInScope(trx, scope, normalizedSectionId);
+
+    const project = await getSectionGroupProjectById(trx, normalizedSectionId, normalizedProjectId);
+    if (!project) {
+      const error = new Error('Group project not found');
+      error.status = 404;
+      throw error;
+    }
+
+    const deleted = await trx('group_project_members')
+      .where({ id: normalizedMemberId, group_project_id: normalizedProjectId })
+      .del();
+
+    return deleted > 0;
+  });
+}
+
 export default {
   listSections,
   getSectionById,
@@ -427,4 +693,10 @@ export default {
   createSectionExamSchedule,
   updateSectionExamSchedule,
   publishSectionExamSchedule,
+  listSectionGroupProjects,
+  createSectionGroupProject,
+  updateSectionGroupProject,
+  deleteSectionGroupProject,
+  addSectionGroupProjectMember,
+  removeSectionGroupProjectMember,
 };
