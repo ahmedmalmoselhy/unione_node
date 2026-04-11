@@ -199,10 +199,109 @@ export async function deleteSection(id, actor) {
   return db('sections').where({ id }).del();
 }
 
+function baseSectionTeachingAssistantQuery(connection = db) {
+  return connection('section_teaching_assistants as sta')
+    .join('professors as p', 'p.id', 'sta.professor_id')
+    .join('users as u', 'u.id', 'p.user_id')
+    .select(
+      'sta.id',
+      'sta.section_id',
+      'sta.professor_id',
+      'sta.assigned_by_user_id',
+      'sta.created_at',
+      'sta.updated_at',
+      'p.staff_number',
+      'u.first_name',
+      'u.last_name'
+    );
+}
+
+export async function listSectionTeachingAssistants(sectionId, actor) {
+  const scope = buildAdminScope(actor);
+  await assertSectionInScope(db, scope, sectionId);
+
+  return baseSectionTeachingAssistantQuery(db)
+    .where('sta.section_id', Number(sectionId))
+    .orderBy('sta.id', 'asc');
+}
+
+export async function assignSectionTeachingAssistant(sectionId, payload, actor) {
+  return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
+    const normalizedSectionId = Number(sectionId);
+    const normalizedProfessorId = Number(payload.professor_id);
+
+    await assertSectionInScope(trx, scope, normalizedSectionId);
+
+    const professor = await trx('professors').where({ id: normalizedProfessorId }).first();
+    if (!professor) {
+      const error = new Error('Professor not found');
+      error.status = 404;
+      throw error;
+    }
+
+    if (professor.department_id) {
+      await assertDepartmentInScope(trx, scope, professor.department_id);
+    }
+
+    const existing = await baseSectionTeachingAssistantQuery(trx)
+      .where('sta.section_id', normalizedSectionId)
+      .andWhere('sta.professor_id', normalizedProfessorId)
+      .first();
+
+    if (existing) {
+      return { assignment: existing, created: false };
+    }
+
+    const [created] = await trx('section_teaching_assistants')
+      .insert({
+        section_id: normalizedSectionId,
+        professor_id: normalizedProfessorId,
+        assigned_by_user_id: actor?.id || null,
+        created_at: trx.fn.now(),
+        updated_at: trx.fn.now(),
+      })
+      .returning('id');
+
+    const assignment = await baseSectionTeachingAssistantQuery(trx)
+      .where('sta.id', created.id)
+      .first();
+
+    return { assignment, created: true };
+  });
+}
+
+export async function removeSectionTeachingAssistant(sectionId, taId, actor) {
+  return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
+    const normalizedSectionId = Number(sectionId);
+    const normalizedTaId = Number(taId);
+
+    await assertSectionInScope(trx, scope, normalizedSectionId);
+
+    const existing = await trx('section_teaching_assistants')
+      .where({ id: normalizedTaId, section_id: normalizedSectionId })
+      .first();
+
+    if (!existing) {
+      return false;
+    }
+
+    await trx('section_teaching_assistants')
+      .where({ id: normalizedTaId, section_id: normalizedSectionId })
+      .del();
+
+    return true;
+  });
+}
+
 export default {
   listSections,
   getSectionById,
   createSection,
   updateSection,
   deleteSection,
+  listSectionTeachingAssistants,
+  assignSectionTeachingAssistant,
+  removeSectionTeachingAssistant,
 };

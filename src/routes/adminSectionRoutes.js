@@ -3,8 +3,24 @@ import authenticate from '../middleware/authenticate.js';
 import { authorizeAny } from '../middleware/authorize.js';
 import { apiLimiter, writeLimiter } from '../middleware/rateLimiters.js';
 import { validate } from '../utils/validator.js';
-import { index, show, store, update, destroy } from '../controllers/adminSectionController.js';
-import { entityIdParamSchema, adminSectionListQuerySchema, adminSectionCreateSchema, adminSectionUpdateSchema } from '../validators/adminValidators.js';
+import {
+	index,
+	show,
+	store,
+	update,
+	destroy,
+	listTeachingAssistants,
+	storeTeachingAssistant,
+	destroyTeachingAssistant,
+} from '../controllers/adminSectionController.js';
+import {
+	entityIdParamSchema,
+	adminSectionListQuerySchema,
+	adminSectionCreateSchema,
+	adminSectionUpdateSchema,
+	adminSectionTeachingAssistantCreateSchema,
+	adminSectionTeachingAssistantDeleteParamSchema,
+} from '../validators/adminValidators.js';
 
 const router = express.Router();
 const adminScopedRoles = ['admin', 'university_admin', 'faculty_admin', 'department_admin'];
@@ -17,5 +33,19 @@ router.get('/:id', validate(entityIdParamSchema, 'params'), show);
 router.post('/', writeLimiter, validate(adminSectionCreateSchema), store);
 router.patch('/:id', writeLimiter, validate(entityIdParamSchema, 'params'), validate(adminSectionUpdateSchema), update);
 router.delete('/:id', writeLimiter, validate(entityIdParamSchema, 'params'), destroy);
+router.get('/:id/teaching-assistants', validate(entityIdParamSchema, 'params'), listTeachingAssistants);
+router.post(
+	'/:id/teaching-assistants',
+	writeLimiter,
+	validate(entityIdParamSchema, 'params'),
+	validate(adminSectionTeachingAssistantCreateSchema),
+	storeTeachingAssistant,
+);
+router.delete(
+	'/:id/teaching-assistants/:taId',
+	writeLimiter,
+	validate(adminSectionTeachingAssistantDeleteParamSchema, 'params'),
+	destroyTeachingAssistant,
+);
 
 export default router;

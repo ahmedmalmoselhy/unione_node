@@ -306,6 +306,25 @@ DELETE /api/notifications/{notificationId}
 
 ## Admin Endpoints
 
+### Section Teaching Assistants
+
+```bash
+GET /api/admin/sections/{sectionId}/teaching-assistants
+├── Auth: Bearer token + Role: admin|university_admin|faculty_admin|department_admin
+└── Returns: { teaching_assistants[] }
+
+POST /api/admin/sections/{sectionId}/teaching-assistants
+├── Auth: Bearer token + Role: admin|university_admin|faculty_admin|department_admin
+├── Body: { professor_id }
+└── Returns: { assignment }
+
+DELETE /api/admin/sections/{sectionId}/teaching-assistants/{taId}
+├── Auth: Bearer token + Role: admin|university_admin|faculty_admin|department_admin
+└── Returns: { deleted: true }
+```
+
+---
+
 ### Webhook Management
 
 ```bash

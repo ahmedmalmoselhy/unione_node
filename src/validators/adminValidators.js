@@ -191,6 +191,15 @@ export const adminSectionUpdateSchema = Joi.object({
   is_active: Joi.boolean().optional(),
 }).min(1);
 
+export const adminSectionTeachingAssistantCreateSchema = Joi.object({
+  professor_id: Joi.number().integer().positive().required(),
+});
+
+export const adminSectionTeachingAssistantDeleteParamSchema = Joi.object({
+  id: Joi.number().integer().positive().required(),
+  taId: Joi.number().integer().positive().required(),
+});
+
 export const adminStudentListQuerySchema = Joi.object({
   search: Joi.string().max(255).optional(),
   faculty_id: Joi.number().integer().positive().optional(),

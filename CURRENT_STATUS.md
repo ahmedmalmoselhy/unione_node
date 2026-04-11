@@ -96,6 +96,7 @@
 - ✅ Professor admin CRUD implemented (`GET/POST/PATCH/DELETE /api/admin/professors`)
 - ✅ Course admin CRUD implemented (`GET/POST/PATCH/DELETE /api/admin/courses`)
 - ✅ Section admin CRUD implemented (`GET/POST/PATCH/DELETE /api/admin/sections`)
+- ✅ Section teaching assistant assignment endpoints implemented (`GET/POST /api/admin/sections/:id/teaching-assistants`, `DELETE /api/admin/sections/:id/teaching-assistants/:taId`)
 - ✅ Student admin CRUD + transfer implemented (`GET/POST/PATCH/DELETE /api/admin/students`, `POST /api/admin/students/:id/transfer`)
 - ✅ Employee admin CRUD implemented (`GET/POST/PATCH/DELETE /api/admin/employees`)
 - ✅ Enrollment admin CRUD implemented (`GET/POST/PATCH/DELETE /api/admin/enrollments`)
