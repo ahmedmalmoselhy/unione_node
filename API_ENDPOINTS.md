@@ -214,6 +214,7 @@ POST /api/professor/sections/{sectionId}/grades
 ├── Rate Limit: throttle:api.grade
 ├── Body: { grades[{ enrollment_id, points }] }
 ├── Validation: Points 0-100, enrollment in section
+├── Side Effect: Sends final-grade publication email to affected students
 └── Returns: { grades[] }
 ```
 
@@ -252,6 +253,7 @@ GET /api/professor/sections/{sectionId}/announcements
 POST /api/professor/sections/{sectionId}/announcements
 ├── Auth: Bearer token + Role: professor
 ├── Body: { title, content }
+├── Side Effect: Sends announcement email to enrolled students
 └── Returns: { announcement }
 
 DELETE /api/professor/sections/{sectionId}/announcements/{announcementId}
@@ -344,6 +346,7 @@ PATCH /api/admin/sections/{sectionId}/exam-schedule
 
 POST /api/admin/sections/{sectionId}/exam-schedule/publish
 ├── Auth: Bearer token + Role: admin|university_admin|faculty_admin|department_admin
+├── Side Effect: Sends exam-schedule publication email to enrolled students
 └── Returns: { exam_schedule (published) }
 ```
 

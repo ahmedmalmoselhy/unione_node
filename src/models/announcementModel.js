@@ -160,6 +160,18 @@ export async function createSectionAnnouncement({ sectionId, authorId, title, bo
   return created;
 }
 
+export async function listSectionAnnouncementRecipientEmails(sectionId) {
+  const rows = await db('enrollments as e')
+    .join('students as s', 's.id', 'e.student_id')
+    .join('users as u', 'u.id', 's.user_id')
+    .where('e.section_id', sectionId)
+    .whereNot('e.status', 'dropped')
+    .whereNotNull('u.email')
+    .distinct('u.email');
+
+  return rows.map((row) => row.email).filter(Boolean);
+}
+
 export default {
   listVisibleAnnouncements,
   markAnnouncementRead,
@@ -169,4 +181,5 @@ export default {
   listSectionAnnouncementsForStudent,
   listSectionAnnouncementsForProfessor,
   createSectionAnnouncement,
+  listSectionAnnouncementRecipientEmails,
 };

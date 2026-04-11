@@ -7,6 +7,7 @@ import {
   assertStudentInScope,
   buildAdminScope,
 } from '../utils/adminScope.js';
+import { sendBulkEmails } from './emailDeliveryService.js';
 
 function applySectionFilters(query, { search, courseId, professorId, academicTermId, isActive } = {}) {
   if (search) {
@@ -415,9 +416,40 @@ export async function publishSectionExamSchedule(sectionId, actor) {
         updated_at: trx.fn.now(),
       });
 
-    return baseSectionExamScheduleQuery(trx)
+    const schedule = await baseSectionExamScheduleQuery(trx)
       .where('es.section_id', normalizedSectionId)
       .first();
+
+    const recipients = await trx('enrollments as e')
+      .join('students as st', 'st.id', 'e.student_id')
+      .join('users as u', 'u.id', 'st.user_id')
+      .join('sections as s', 's.id', 'e.section_id')
+      .join('courses as c', 'c.id', 's.course_id')
+      .where('e.section_id', normalizedSectionId)
+      .whereNot('e.status', 'dropped')
+      .whereNotNull('u.email')
+      .distinct('u.email', 'c.code', 'c.name')
+      .select('u.email', 'c.code as course_code', 'c.name as course_name');
+
+    const recipientEmails = recipients.map((row) => row.email).filter(Boolean);
+    const courseLabel = recipients[0]?.course_code
+      ? `${recipients[0].course_code}${recipients[0]?.course_name ? ` - ${recipients[0].course_name}` : ''}`
+      : 'your section';
+
+    await sendBulkEmails([
+      {
+        to: recipientEmails,
+        subject: `Exam schedule published: ${courseLabel}`,
+        text: [
+          `The exam schedule for ${courseLabel} has been published.`,
+          `Date: ${schedule.exam_date}`,
+          `Time: ${schedule.start_time} - ${schedule.end_time}`,
+          `Location: ${schedule.location || 'TBA'}`,
+        ].join('\n'),
+      },
+    ]);
+
+    return schedule;
   });
 }
 

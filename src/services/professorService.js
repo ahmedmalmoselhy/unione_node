@@ -13,6 +13,7 @@ import {
   listAttendanceRecordsBySession,
 } from '../models/professorModel.js';
 import { dispatchWebhookEvent } from './webhookService.js';
+import { sendBulkEmails } from './emailDeliveryService.js';
 import { buildScheduleIcs } from '../utils/exportBuilders.js';
 import announcementModel from '../models/announcementModel.js';
 
@@ -121,7 +122,33 @@ export async function submitProfessorSectionGrades(userId, sectionId, grades) {
     enrollment_ids: gradeRows.map((row) => row.enrollment_id),
   });
 
-  return listProfessorSectionGrades(userId, sectionId);
+  const latestGrades = await listProfessorSectionGrades(userId, sectionId);
+  const touchedEnrollmentIds = new Set(gradeRows.map((row) => Number(row.enrollment_id)));
+  const emailMessages = latestGrades
+    .filter((row) => touchedEnrollmentIds.has(Number(row.enrollment_id)) && row.email)
+    .map((row) => {
+      const studentName = `${row.first_name || ''} ${row.last_name || ''}`.trim() || row.student_number;
+      const gradeText = row.letter_grade
+        ? `Your final grade is ${row.letter_grade}${row.total !== null ? ` (${row.total}/100)` : ''}.`
+        : row.total !== null
+          ? `Your final score is ${row.total}/100.`
+          : 'Your final grade has been published.';
+
+      return {
+        to: row.email,
+        subject: `Final grade published: ${row.course_code || 'Course'}`,
+        text: [
+          `Hello ${studentName},`,
+          '',
+          `Your final grade for ${row.course_code || 'course'}${row.course_name ? ` - ${row.course_name}` : ''} has been published.`,
+          gradeText,
+        ].join('\n'),
+      };
+    });
+
+  await sendBulkEmails(emailMessages);
+
+  return latestGrades;
 }
 
 export async function createProfessorAttendanceSession(userId, sectionId, { session_date: sessionDate, topic }) {
@@ -204,13 +231,30 @@ export async function createProfessorSectionAnnouncement(userId, sectionId, { ti
     return null;
   }
 
-  return announcementModel.createSectionAnnouncement({
+  const announcement = await announcementModel.createSectionAnnouncement({
     sectionId,
     authorId: userId,
     title,
     body,
     publishedAt: publishedAt || null,
   });
+
+  const recipientEmails = await announcementModel.listSectionAnnouncementRecipientEmails(sectionId);
+  await sendBulkEmails([
+    {
+      to: recipientEmails,
+      subject: `New announcement: ${section.course_code || 'Section'}`,
+      text: [
+        'A new announcement has been posted for your enrolled section.',
+        `Course: ${section.course_code || 'N/A'}${section.course_name ? ` - ${section.course_name}` : ''}`,
+        `Title: ${title}`,
+        '',
+        String(body || ''),
+      ].join('\n'),
+    },
+  ]);
+
+  return announcement;
 }
 
 export default {

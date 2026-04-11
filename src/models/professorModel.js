@@ -57,7 +57,8 @@ export async function listProfessorSectionsByUserId(userId, { academicTermId } =
 export async function findProfessorSectionById(userId, sectionId) {
   return db('sections as s')
     .join('professors as p', 'p.id', 's.professor_id')
-    .select('s.id')
+    .join('courses as c', 'c.id', 's.course_id')
+    .select('s.id', 'c.code as course_code', 'c.name as course_name')
     .where('p.user_id', userId)
     .andWhere('s.id', sectionId)
     .first();
@@ -92,6 +93,7 @@ export async function listProfessorSectionGrades(userId, sectionId) {
   return db('enrollments as e')
     .join('sections as s', 's.id', 'e.section_id')
     .join('professors as p', 'p.id', 's.professor_id')
+    .join('courses as c', 'c.id', 's.course_id')
     .join('students as st', 'st.id', 'e.student_id')
     .join('users as su', 'su.id', 'st.user_id')
     .leftJoin('grades as g', 'g.enrollment_id', 'e.id')
@@ -101,6 +103,9 @@ export async function listProfessorSectionGrades(userId, sectionId) {
       'st.student_number',
       'su.first_name',
       'su.last_name',
+      'su.email',
+      'c.code as course_code',
+      'c.name as course_name',
       'e.status as enrollment_status',
       'g.id as grade_id',
       'g.midterm',

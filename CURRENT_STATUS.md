@@ -99,6 +99,7 @@
 - ✅ Section teaching assistant assignment endpoints implemented (`GET/POST /api/admin/sections/:id/teaching-assistants`, `DELETE /api/admin/sections/:id/teaching-assistants/:taId`)
 - ✅ Section exam schedule endpoints implemented (`GET/POST/PATCH /api/admin/sections/:id/exam-schedule`, `POST /api/admin/sections/:id/exam-schedule/publish`)
 - ✅ Section group project endpoints implemented (`GET/POST/PATCH/DELETE /api/admin/sections/:id/group-projects`, member add/remove endpoints)
+- ✅ Outbound email delivery flows implemented for section announcements, exam-schedule publication, and final-grade publication events
 - ✅ Student admin CRUD + transfer implemented (`GET/POST/PATCH/DELETE /api/admin/students`, `POST /api/admin/students/:id/transfer`)
 - ✅ Employee admin CRUD implemented (`GET/POST/PATCH/DELETE /api/admin/employees`)
 - ✅ Enrollment admin CRUD implemented (`GET/POST/PATCH/DELETE /api/admin/enrollments`)
@@ -244,10 +245,10 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 
 ### For Backend Developer
 
-1. Add email-delivery flows for announcements, exam schedule publication, and final-grade publication
-2. Continue expanding policy coverage and scope-specific access checks as new routes are added
-3. Backfill integration tests for outbound email-trigger events
-4. Validate migration/seed parity in CI with the new group project tables
+1. Continue expanding policy coverage and scope-specific access checks as new routes are added
+2. Backfill integration tests for outbound email-trigger events
+3. Validate migration/seed parity in CI with the new group project tables
+4. Validate SMTP-backed delivery behavior in staging with real provider credentials
 
 ### For Frontend Developer
 
