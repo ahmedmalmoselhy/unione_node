@@ -295,6 +295,125 @@ export async function removeSectionTeachingAssistant(sectionId, taId, actor) {
   });
 }
 
+function baseSectionExamScheduleQuery(connection = db) {
+  return connection('exam_schedules as es')
+    .select(
+      'es.id',
+      'es.section_id',
+      'es.exam_date',
+      'es.start_time',
+      'es.end_time',
+      'es.location',
+      'es.is_published',
+      'es.published_at',
+      'es.created_at',
+      'es.updated_at'
+    );
+}
+
+export async function getSectionExamSchedule(sectionId, actor) {
+  const scope = buildAdminScope(actor);
+  await assertSectionInScope(db, scope, sectionId);
+
+  return baseSectionExamScheduleQuery(db)
+    .where('es.section_id', Number(sectionId))
+    .first();
+}
+
+export async function createSectionExamSchedule(sectionId, payload, actor) {
+  return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
+    const normalizedSectionId = Number(sectionId);
+
+    await assertSectionInScope(trx, scope, normalizedSectionId);
+
+    const existing = await trx('exam_schedules').where({ section_id: normalizedSectionId }).first();
+    if (existing) {
+      const error = new Error('Exam schedule already exists for this section');
+      error.status = 409;
+      throw error;
+    }
+
+    const [created] = await trx('exam_schedules')
+      .insert({
+        section_id: normalizedSectionId,
+        exam_date: payload.exam_date,
+        start_time: payload.start_time,
+        end_time: payload.end_time,
+        location: payload.location || null,
+        is_published: false,
+        published_at: null,
+        created_at: trx.fn.now(),
+        updated_at: trx.fn.now(),
+      })
+      .returning('id');
+
+    return baseSectionExamScheduleQuery(trx)
+      .where('es.id', created.id)
+      .first();
+  });
+}
+
+export async function updateSectionExamSchedule(sectionId, payload, actor) {
+  return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
+    const normalizedSectionId = Number(sectionId);
+
+    await assertSectionInScope(trx, scope, normalizedSectionId);
+
+    const existing = await trx('exam_schedules').where({ section_id: normalizedSectionId }).first();
+    if (!existing) {
+      return null;
+    }
+
+    const patch = {};
+    for (const key of ['exam_date', 'start_time', 'end_time', 'location']) {
+      if (payload[key] !== undefined) {
+        patch[key] = payload[key];
+      }
+    }
+
+    if (Object.keys(patch).length > 0 && existing.is_published) {
+      patch.is_published = false;
+      patch.published_at = null;
+    }
+
+    await trx('exam_schedules')
+      .where({ section_id: normalizedSectionId })
+      .update({ ...patch, updated_at: trx.fn.now() });
+
+    return baseSectionExamScheduleQuery(trx)
+      .where('es.section_id', normalizedSectionId)
+      .first();
+  });
+}
+
+export async function publishSectionExamSchedule(sectionId, actor) {
+  return db.transaction(async (trx) => {
+    const scope = buildAdminScope(actor);
+    const normalizedSectionId = Number(sectionId);
+
+    await assertSectionInScope(trx, scope, normalizedSectionId);
+
+    const existing = await trx('exam_schedules').where({ section_id: normalizedSectionId }).first();
+    if (!existing) {
+      return null;
+    }
+
+    await trx('exam_schedules')
+      .where({ section_id: normalizedSectionId })
+      .update({
+        is_published: true,
+        published_at: trx.fn.now(),
+        updated_at: trx.fn.now(),
+      });
+
+    return baseSectionExamScheduleQuery(trx)
+      .where('es.section_id', normalizedSectionId)
+      .first();
+  });
+}
+
 export default {
   listSections,
   getSectionById,
@@ -304,4 +423,8 @@ export default {
   listSectionTeachingAssistants,
   assignSectionTeachingAssistant,
   removeSectionTeachingAssistant,
+  getSectionExamSchedule,
+  createSectionExamSchedule,
+  updateSectionExamSchedule,
+  publishSectionExamSchedule,
 };

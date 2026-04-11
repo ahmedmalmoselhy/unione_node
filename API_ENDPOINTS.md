@@ -325,6 +325,30 @@ DELETE /api/admin/sections/{sectionId}/teaching-assistants/{taId}
 
 ---
 
+### Section Exam Schedules
+
+```bash
+GET /api/admin/sections/{sectionId}/exam-schedule
+├── Auth: Bearer token + Role: admin|university_admin|faculty_admin|department_admin
+└── Returns: { exam_schedule }
+
+POST /api/admin/sections/{sectionId}/exam-schedule
+├── Auth: Bearer token + Role: admin|university_admin|faculty_admin|department_admin
+├── Body: { exam_date, start_time, end_time, location? }
+└── Returns: { exam_schedule }
+
+PATCH /api/admin/sections/{sectionId}/exam-schedule
+├── Auth: Bearer token + Role: admin|university_admin|faculty_admin|department_admin
+├── Body: { exam_date?, start_time?, end_time?, location? }
+└── Returns: { exam_schedule }
+
+POST /api/admin/sections/{sectionId}/exam-schedule/publish
+├── Auth: Bearer token + Role: admin|university_admin|faculty_admin|department_admin
+└── Returns: { exam_schedule (published) }
+```
+
+---
+
 ### Webhook Management
 
 ```bash

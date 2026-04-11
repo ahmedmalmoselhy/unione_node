@@ -200,6 +200,20 @@ export const adminSectionTeachingAssistantDeleteParamSchema = Joi.object({
   taId: Joi.number().integer().positive().required(),
 });
 
+export const adminSectionExamScheduleCreateSchema = Joi.object({
+  exam_date: Joi.date().iso().required(),
+  start_time: Joi.string().pattern(/^\d{2}:\d{2}(:\d{2})?$/).required(),
+  end_time: Joi.string().pattern(/^\d{2}:\d{2}(:\d{2})?$/).required(),
+  location: Joi.string().max(255).allow(null, '').optional(),
+});
+
+export const adminSectionExamScheduleUpdateSchema = Joi.object({
+  exam_date: Joi.date().iso().optional(),
+  start_time: Joi.string().pattern(/^\d{2}:\d{2}(:\d{2})?$/).optional(),
+  end_time: Joi.string().pattern(/^\d{2}:\d{2}(:\d{2})?$/).optional(),
+  location: Joi.string().max(255).allow(null, '').optional(),
+}).min(1);
+
 export const adminStudentListQuerySchema = Joi.object({
   search: Joi.string().max(255).optional(),
   faculty_id: Joi.number().integer().positive().optional(),

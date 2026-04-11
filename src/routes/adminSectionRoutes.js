@@ -12,6 +12,10 @@ import {
 	listTeachingAssistants,
 	storeTeachingAssistant,
 	destroyTeachingAssistant,
+	showExamSchedule,
+	storeExamSchedule,
+	updateExamSchedule,
+	publishExamSchedule,
 } from '../controllers/adminSectionController.js';
 import {
 	entityIdParamSchema,
@@ -20,6 +24,8 @@ import {
 	adminSectionUpdateSchema,
 	adminSectionTeachingAssistantCreateSchema,
 	adminSectionTeachingAssistantDeleteParamSchema,
+	adminSectionExamScheduleCreateSchema,
+	adminSectionExamScheduleUpdateSchema,
 } from '../validators/adminValidators.js';
 
 const router = express.Router();
@@ -47,5 +53,21 @@ router.delete(
 	validate(adminSectionTeachingAssistantDeleteParamSchema, 'params'),
 	destroyTeachingAssistant,
 );
+router.get('/:id/exam-schedule', validate(entityIdParamSchema, 'params'), showExamSchedule);
+router.post(
+	'/:id/exam-schedule',
+	writeLimiter,
+	validate(entityIdParamSchema, 'params'),
+	validate(adminSectionExamScheduleCreateSchema),
+	storeExamSchedule,
+);
+router.patch(
+	'/:id/exam-schedule',
+	writeLimiter,
+	validate(entityIdParamSchema, 'params'),
+	validate(adminSectionExamScheduleUpdateSchema),
+	updateExamSchedule,
+);
+router.post('/:id/exam-schedule/publish', writeLimiter, validate(entityIdParamSchema, 'params'), publishExamSchedule);
 
 export default router;

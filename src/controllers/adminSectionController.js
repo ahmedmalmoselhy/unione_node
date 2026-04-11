@@ -8,6 +8,10 @@ import {
   listSectionTeachingAssistants,
   assignSectionTeachingAssistant,
   removeSectionTeachingAssistant,
+  getSectionExamSchedule,
+  createSectionExamSchedule,
+  updateSectionExamSchedule,
+  publishSectionExamSchedule,
 } from '../services/adminSectionService.js';
 
 export async function index(req, res, next) {
@@ -129,6 +133,70 @@ export async function destroyTeachingAssistant(req, res, next) {
   }
 }
 
+export async function showExamSchedule(req, res, next) {
+  try {
+    const sectionId = Number(req.params.id);
+    const data = await getSectionExamSchedule(sectionId, req.user);
+    if (!data) {
+      return res.status(404).json(errorResponse('Exam schedule not found', 404));
+    }
+    return res.status(200).json(success(data, 'Section exam schedule fetched successfully', 200));
+  } catch (error) {
+    if (error.status === 404) {
+      return res.status(404).json(errorResponse(error.message, 404));
+    }
+    return next(error);
+  }
+}
+
+export async function storeExamSchedule(req, res, next) {
+  try {
+    const sectionId = Number(req.params.id);
+    const data = await createSectionExamSchedule(sectionId, req.body, req.user);
+    return res.status(201).json(success(data, 'Section exam schedule created successfully', 201));
+  } catch (error) {
+    if (error.status === 404) {
+      return res.status(404).json(errorResponse(error.message, 404));
+    }
+    if (error.status === 409) {
+      return res.status(409).json(errorResponse(error.message, 409));
+    }
+    return next(error);
+  }
+}
+
+export async function updateExamSchedule(req, res, next) {
+  try {
+    const sectionId = Number(req.params.id);
+    const data = await updateSectionExamSchedule(sectionId, req.body, req.user);
+    if (!data) {
+      return res.status(404).json(errorResponse('Exam schedule not found', 404));
+    }
+    return res.status(200).json(success(data, 'Section exam schedule updated successfully', 200));
+  } catch (error) {
+    if (error.status === 404) {
+      return res.status(404).json(errorResponse(error.message, 404));
+    }
+    return next(error);
+  }
+}
+
+export async function publishExamSchedule(req, res, next) {
+  try {
+    const sectionId = Number(req.params.id);
+    const data = await publishSectionExamSchedule(sectionId, req.user);
+    if (!data) {
+      return res.status(404).json(errorResponse('Exam schedule not found', 404));
+    }
+    return res.status(200).json(success(data, 'Section exam schedule published successfully', 200));
+  } catch (error) {
+    if (error.status === 404) {
+      return res.status(404).json(errorResponse(error.message, 404));
+    }
+    return next(error);
+  }
+}
+
 export default {
   index,
   show,
@@ -138,4 +206,8 @@ export default {
   listTeachingAssistants,
   storeTeachingAssistant,
   destroyTeachingAssistant,
+  showExamSchedule,
+  storeExamSchedule,
+  updateExamSchedule,
+  publishExamSchedule,
 };

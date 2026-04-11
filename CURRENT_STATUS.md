@@ -97,6 +97,7 @@
 - ✅ Course admin CRUD implemented (`GET/POST/PATCH/DELETE /api/admin/courses`)
 - ✅ Section admin CRUD implemented (`GET/POST/PATCH/DELETE /api/admin/sections`)
 - ✅ Section teaching assistant assignment endpoints implemented (`GET/POST /api/admin/sections/:id/teaching-assistants`, `DELETE /api/admin/sections/:id/teaching-assistants/:taId`)
+- ✅ Section exam schedule endpoints implemented (`GET/POST/PATCH /api/admin/sections/:id/exam-schedule`, `POST /api/admin/sections/:id/exam-schedule/publish`)
 - ✅ Student admin CRUD + transfer implemented (`GET/POST/PATCH/DELETE /api/admin/students`, `POST /api/admin/students/:id/transfer`)
 - ✅ Employee admin CRUD implemented (`GET/POST/PATCH/DELETE /api/admin/employees`)
 - ✅ Enrollment admin CRUD implemented (`GET/POST/PATCH/DELETE /api/admin/enrollments`)
@@ -242,10 +243,10 @@ Each phase builds components and endpoints according to the detailed IMPLEMENTAT
 
 ### For Backend Developer
 
-1. Mirror the remaining Laravel dashboard/admin CRUD, import/export, locale, audit-log, and stats routes in Node
-2. Continue expanding policy coverage and scope-specific access checks as those routes are added
-3. Backfill integration tests for the new admin CRUD/assignment/report route families
-4. Validate integration coverage once the local PostgreSQL test database is available
+1. Implement admin group project management endpoints and lifecycle policies
+2. Add email-delivery flows for announcements, exam schedule publication, and final-grade publication
+3. Continue expanding policy coverage and scope-specific access checks as new routes are added
+4. Backfill integration tests for group projects and outbound email-trigger events
 
 ### For Frontend Developer
 
