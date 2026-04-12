@@ -80,22 +80,47 @@ async function processEmail(job) {
 
   // Import email service dynamically to avoid circular dependencies
   const emailService = require('../services/emailDeliveryService');
+  const socketService = require('../services/socketService');
 
   switch (type) {
     case 'announcement':
       await emailService.sendAnnouncementEmail(data.userId, data.announcement);
+      // Emit real-time notification
+      socketService.emitNotification(data.userId, {
+        id: `email_${job.id}`,
+        title: data.announcement?.title || 'New Announcement',
+        body: data.announcement?.body || 'You have a new announcement',
+        type: 'announcement',
+        payload: data.announcement,
+      });
       break;
     case 'exam_schedule':
       await emailService.sendExamScheduleEmail(data.userId, data.examSchedule);
+      socketService.emitNotification(data.userId, {
+        id: `email_${job.id}`,
+        title: 'Exam Schedule Published',
+        body: 'Your exam schedule is now available',
+        type: 'exam_schedule',
+        payload: data.examSchedule,
+      });
       break;
     case 'grade_published':
       await emailService.sendGradePublishedEmail(data.userId, data.grade);
+      socketService.emitGradeUpdate(data.userId, data.grade);
       break;
     case 'waitlist_promoted':
       await emailService.sendWaitlistPromotedEmail(data.userId, data.enrollment);
+      socketService.emitNotification(data.userId, {
+        id: `email_${job.id}`,
+        title: 'Waitlist Promotion',
+        body: 'You have been enrolled in a course!',
+        type: 'enrollment',
+        payload: data.enrollment,
+      });
       break;
     case 'enrollment_confirmed':
       await emailService.sendEnrollmentConfirmationEmail(data.userId, data.enrollment);
+      socketService.emitEnrollmentUpdate(data.userId, data.enrollment);
       break;
     default:
       throw new Error(`Unknown email type: ${type}`);

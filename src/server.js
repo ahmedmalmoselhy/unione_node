@@ -4,8 +4,10 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'node:url';
+import { createServer } from 'node:http';
 import errorHandler from './middleware/errorHandler.js';
 import notFound from './middleware/notFound.js';
+import { initializeSocket } from './services/socketService.js';
 import authRoutes from './routes/authRoutes.js';
 import organizationRoutes from './routes/organizationRoutes.js';
 import studentRoutes from './routes/studentRoutes.js';
@@ -31,6 +33,7 @@ import adminGradeRoutes from './routes/adminGradeRoutes.js';
 import adminAssignmentRoutes from './routes/adminAssignmentRoutes.js';
 import adminReportsRoutes from './routes/adminReportsRoutes.js';
 import queueRoutes from './routes/queueRoutes.js';
+import realtimeRoutes from './routes/realtimeRoutes.js';
 import { localeMiddleware } from './middleware/locale.js';
 
 dotenv.config();
@@ -81,6 +84,7 @@ app.use('/api/v1/admin', adminAssignmentRoutes);
 app.use('/api/v1/admin', adminReportsRoutes);
 app.use('/api/v1/admin/webhooks', adminWebhookRoutes);
 app.use('/api/v1/admin/queue', queueRoutes);
+app.use('/api/v1/realtime', realtimeRoutes);
 
 // Backward compatibility - redirect old /api/* routes to /api/v1/*
 app.use('/api/*', (req, res) => {
@@ -100,22 +104,30 @@ app.use(notFound);
 // Error handler (must be last)
 app.use(errorHandler);
 
-let server;
+// Create HTTP server
+const server = createServer(app);
 
-export function startServer() {
-  if (!server) {
-    server = app.listen(PORT, () => {
-      console.log(`
+let socketIO;
+
+async function startServer() {
+  // Initialize Socket.io
+  try {
+    socketIO = await initializeSocket(server);
+    console.log('🔌 Socket.io initialized');
+  } catch (error) {
+    console.warn('⚠️ Socket.io initialization failed:', error.message);
+  }
+
+  return server.listen(PORT, () => {
+    console.log(`
     ╔════════════════════════════════════╗
     ║   UniOne Backend - Node.js         ║
     ║   Server running on port ${PORT}      ║
     ║   Environment: ${process.env.NODE_ENV || 'development'}  ║
+    ║   Real-time: ${socketIO ? 'Enabled' : 'Disabled'}          ║
     ╚════════════════════════════════════╝
   `);
-    });
-  }
-
-  return server;
+  });
 }
 
 const currentFilePath = fileURLToPath(import.meta.url);
@@ -124,3 +136,4 @@ if (process.argv[1] && currentFilePath === process.argv[1]) {
 }
 
 export default app;
+export { server, startServer };
