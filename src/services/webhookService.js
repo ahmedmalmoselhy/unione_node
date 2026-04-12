@@ -1,24 +1,13 @@
-import axios from 'axios';
 import crypto from 'node:crypto';
 import webhookModel from '../models/webhookModel.js';
 import db from '../config/knex.js';
+import { addWebhook } from '../queues/webhookQueue.js';
 
-function signPayload(secret, payload) {
-  const body = JSON.stringify(payload);
-  return crypto.createHmac('sha256', secret).update(body).digest('hex');
-}
-
-function sleep(ms) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
-function computeBackoffMs(attempt) {
-  const base = 200;
-  return base * 2 ** (attempt - 1);
-}
-
+/**
+ * Dispatch webhook event by queueing it for async delivery
+ * @param {string} event - Event name
+ * @param {object} payload - Event payload
+ */
 export async function dispatchWebhookEvent(event, payload) {
   const hasWebhooksTable = await db.schema.hasTable('webhooks');
   const hasDeliveriesTable = await db.schema.hasTable('webhook_deliveries');
@@ -33,60 +22,32 @@ export async function dispatchWebhookEvent(event, payload) {
     return;
   }
 
+  // Queue webhook deliveries instead of synchronous execution
   await Promise.all(
     webhooks.map(async (webhook) => {
-      const signature = signPayload(webhook.secret, payload);
-      const maxAttempts = 3;
-      const deliveryId = crypto.randomUUID();
-
-      for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-        try {
-          const response = await axios.post(webhook.url, payload, {
-            timeout: 5000,
-            headers: {
-              'content-type': 'application/json',
-              'x-unione-event': event,
-              'x-unione-signature': signature,
-              'x-unione-delivery-id': deliveryId,
-              'x-unione-attempt': String(attempt),
-            },
-          });
-
-          await webhookModel.createWebhookDelivery({
-            webhookId: webhook.id,
-            event,
-            payload,
-            responseStatus: response.status,
-            responseBody: typeof response.data === 'string' ? response.data.slice(0, 1000) : JSON.stringify(response.data),
-            attempt,
-            deliveredAt: new Date(),
-          });
-
-          await webhookModel.markWebhookSuccess(webhook.id);
-          break;
-        } catch (error) {
-          await webhookModel.createWebhookDelivery({
-            webhookId: webhook.id,
-            event,
-            payload,
-            responseStatus: error.response?.status || null,
-            responseBody: error.message,
-            attempt,
-            deliveredAt: new Date(),
-          });
-
-          if (attempt >= maxAttempts) {
-            await webhookModel.incrementWebhookFailure(webhook.id);
-            break;
-          }
-
-          await sleep(computeBackoffMs(attempt));
-        }
+      try {
+        await addWebhook({
+          webhookId: webhook.id,
+          event,
+          webhookUrl: webhook.url,
+          payload,
+          headers: webhook.headers || {},
+          secret: webhook.secret,
+        });
+      } catch (error) {
+        console.error(`Failed to queue webhook delivery: ${error.message}`);
       }
     })
   );
 }
 
+/**
+ * List webhook deliveries for a user
+ * @param {number} userId - User ID
+ * @param {number} webhookId - Webhook ID
+ * @param {number} limit - Limit
+ * @returns {Promise<Array>} Deliveries
+ */
 export async function listWebhookDeliveries(userId, webhookId, limit = 50) {
   const safeLimit = Math.min(Number(limit) || 50, 200);
   return webhookModel.listWebhookDeliveriesByWebhookIdAndUserId(userId, webhookId, safeLimit);

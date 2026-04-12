@@ -30,6 +30,7 @@ import adminEnrollmentRoutes from './routes/adminEnrollmentRoutes.js';
 import adminGradeRoutes from './routes/adminGradeRoutes.js';
 import adminAssignmentRoutes from './routes/adminAssignmentRoutes.js';
 import adminReportsRoutes from './routes/adminReportsRoutes.js';
+import queueRoutes from './routes/queueRoutes.js';
 import { localeMiddleware } from './middleware/locale.js';
 
 dotenv.config();
@@ -87,6 +88,7 @@ app.use('/api/admin/grades', adminGradeRoutes);
 app.use('/api/admin', adminAssignmentRoutes);
 app.use('/api/admin', adminReportsRoutes);
 app.use('/api/admin/webhooks', adminWebhookRoutes);
+app.use('/api/admin/queue', queueRoutes);
 
 // 404 handler
 app.use(notFound);
