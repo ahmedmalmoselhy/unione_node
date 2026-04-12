@@ -55,40 +55,44 @@ app.get('/health', (req, res) => {
   });
 });
 
-// API Routes (to be added)
-app.get('/api', (req, res) => {
-  res.status(200).json({
-    message: 'Welcome to UniOne Backend API',
-    version: '1.0.0',
-    documentation: '/api/docs',
-  });
-});
+// API Routes - Versioned under /api/v1/
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/organization', organizationRoutes);
+app.use('/api/v1/student', studentRoutes);
+app.use('/api/v1/professor', professorRoutes);
+app.use('/api/v1/announcements', announcementRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/webhooks', webhookRoutes);
+app.use('/api/v1/locale', localeRoutes);
+app.use('/api/v1/admin/analytics', adminAnalyticsRoutes);
+app.use('/api/v1/admin/dashboard', adminDashboardRoutes);
+app.use('/api/v1/admin/exports', adminExportRoutes);
+app.use('/api/v1/admin/import-templates', adminImportTemplateRoutes);
+app.use('/api/v1/admin/imports', adminImportRoutes);
+app.use('/api/v1/admin/academic-terms', adminAcademicTermRoutes);
+app.use('/api/v1/admin/professors', adminProfessorRoutes);
+app.use('/api/v1/admin/courses', adminCourseRoutes);
+app.use('/api/v1/admin/sections', adminSectionRoutes);
+app.use('/api/v1/admin/students', adminStudentRoutes);
+app.use('/api/v1/admin/employees', adminEmployeeRoutes);
+app.use('/api/v1/admin/enrollments', adminEnrollmentRoutes);
+app.use('/api/v1/admin/grades', adminGradeRoutes);
+app.use('/api/v1/admin', adminAssignmentRoutes);
+app.use('/api/v1/admin', adminReportsRoutes);
+app.use('/api/v1/admin/webhooks', adminWebhookRoutes);
+app.use('/api/v1/admin/queue', queueRoutes);
 
-app.use('/api/auth', authRoutes);
-app.use('/api/organization', organizationRoutes);
-app.use('/api/student', studentRoutes);
-app.use('/api/professor', professorRoutes);
-app.use('/api/announcements', announcementRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/webhooks', webhookRoutes);
-app.use('/api/locale', localeRoutes);
-app.use('/api/admin/analytics', adminAnalyticsRoutes);
-app.use('/api/admin/dashboard', adminDashboardRoutes);
-app.use('/api/admin/exports', adminExportRoutes);
-app.use('/api/admin/import-templates', adminImportTemplateRoutes);
-app.use('/api/admin/imports', adminImportRoutes);
-app.use('/api/admin/academic-terms', adminAcademicTermRoutes);
-app.use('/api/admin/professors', adminProfessorRoutes);
-app.use('/api/admin/courses', adminCourseRoutes);
-app.use('/api/admin/sections', adminSectionRoutes);
-app.use('/api/admin/students', adminStudentRoutes);
-app.use('/api/admin/employees', adminEmployeeRoutes);
-app.use('/api/admin/enrollments', adminEnrollmentRoutes);
-app.use('/api/admin/grades', adminGradeRoutes);
-app.use('/api/admin', adminAssignmentRoutes);
-app.use('/api/admin', adminReportsRoutes);
-app.use('/api/admin/webhooks', adminWebhookRoutes);
-app.use('/api/admin/queue', queueRoutes);
+// Backward compatibility - redirect old /api/* routes to /api/v1/*
+app.use('/api/*', (req, res) => {
+  const newPath = req.path;
+  const versionedUrl = `/api/v1${newPath}`;
+  
+  return res.status(410).json({
+    message: 'API versioning is now required.',
+    redirect: versionedUrl,
+    documentation: `${process.env.APP_URL || 'http://localhost:3000'}/docs`,
+  }).header('X-API-Deprecation', 'Use /api/v1/ instead');
+});
 
 // 404 handler
 app.use(notFound);
