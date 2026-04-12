@@ -35,6 +35,7 @@ import adminReportsRoutes from './routes/adminReportsRoutes.js';
 import queueRoutes from './routes/queueRoutes.js';
 import realtimeRoutes from './routes/realtimeRoutes.js';
 import advancedAnalyticsRoutes from './routes/advancedAnalyticsRoutes.js';
+import bulkOperationRoutes from './routes/bulkOperationRoutes.js';
 import { localeMiddleware } from './middleware/locale.js';
 
 dotenv.config();
@@ -87,6 +88,7 @@ app.use('/api/v1/admin/webhooks', adminWebhookRoutes);
 app.use('/api/v1/admin/queue', queueRoutes);
 app.use('/api/v1/realtime', realtimeRoutes);
 app.use('/api/v1/admin/analytics', advancedAnalyticsRoutes);
+app.use('/api/v1/admin/bulk', bulkOperationRoutes);
 
 // Backward compatibility - redirect old /api/* routes to /api/v1/*
 app.use('/api/*', (req, res) => {
