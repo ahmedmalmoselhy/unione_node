@@ -11,7 +11,9 @@ import notFound from './middleware/notFound.js';
 import { initializeSocket } from './services/socketService.js';
 import { httpLogger } from './services/logger.js';
 import logger from './services/logger.js';
+import cache from './services/cacheService.js';
 import monitoringRoutes from './routes/monitoringRoutes.js';
+import cacheRoutes from './routes/cacheRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import organizationRoutes from './routes/organizationRoutes.js';
 import studentRoutes from './routes/studentRoutes.js';
@@ -45,6 +47,11 @@ import integrationMarketplaceRoutes from './routes/integrationMarketplaceRoutes.
 import { localeMiddleware } from './middleware/locale.js';
 
 dotenv.config();
+
+// Initialize Redis cache (non-blocking)
+cache.connect().catch(err => {
+  logger.warn('⚠️ Redis cache initialization failed', { error: err.message });
+});
 
 // Initialize Sentry
 if (process.env.SENTRY_DSN) {
@@ -119,6 +126,7 @@ app.use('/api/v1/admin/bulk', bulkOperationRoutes);
 app.use('/api/v1/privacy', dataPrivacyRoutes);
 app.use('/api/v1/admin/integrations', integrationMarketplaceRoutes);
 app.use('/api/v1/admin/monitoring', monitoringRoutes);
+app.use('/api/v1/admin/cache', cacheRoutes);
 
 // Backward compatibility - redirect old /api/* routes to /api/v1/*
 app.use('/api/*', (req, res) => {
