@@ -1,5 +1,5 @@
 import { success, error as errorResponse } from '../utils/response.js';
-import { listStudents, getStudentById, createStudent, updateStudent, transferStudent, deleteStudent } from '../services/adminStudentService.js';
+import { listStudents, getStudentById, createStudent, updateStudent, transferStudent, getTransferHistory, deleteStudent } from '../services/adminStudentService.js';
 
 export async function index(req, res, next) {
   try {
@@ -73,6 +73,16 @@ export async function transfer(req, res, next) {
   }
 }
 
+export async function transferHistory(req, res, next) {
+  try {
+    const studentId = Number(req.params.id);
+    const history = await getTransferHistory(studentId);
+    return res.status(200).json(success(history, 'Transfer history retrieved', 200));
+  } catch (error) {
+    return next(error);
+  }
+}
+
 export async function destroy(req, res, next) {
   try {
     const id = Number(req.params.id);
@@ -95,5 +105,6 @@ export default {
   store,
   update,
   transfer,
+  transferHistory,
   destroy,
 };

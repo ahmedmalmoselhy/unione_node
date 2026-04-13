@@ -292,6 +292,28 @@ export async function updateStudent(id, payload, actor) {
   });
 }
 
+export async function getTransferHistory(studentId) {
+  const history = await db('student_department_history as h')
+    .join('departments as old_dept', 'old_dept.id', 'h.from_department_id')
+    .join('departments as new_dept', 'new_dept.id', 'h.to_department_id')
+    .leftJoin('users as u', 'u.id', 'h.switched_by')
+    .where('h.student_id', studentId)
+    .select(
+      'h.id',
+      'h.from_department_id',
+      'h.to_department_id',
+      'h.switched_at',
+      'h.switched_by',
+      'h.note',
+      'old_dept.name as old_department_name',
+      'new_dept.name as new_department_name',
+      db.raw("u.first_name || ' ' || u.last_name as switched_by_name")
+    )
+    .orderBy('h.switched_at', 'desc');
+
+  return history;
+}
+
 export async function transferStudent(id, toDepartmentId, switchedBy, note = null, actor) {
   return db.transaction(async (trx) => {
     const scope = buildAdminScope(actor);
@@ -353,5 +375,6 @@ export default {
   createStudent,
   updateStudent,
   transferStudent,
+  getTransferHistory,
   deleteStudent,
 };
