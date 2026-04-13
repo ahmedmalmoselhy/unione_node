@@ -14,6 +14,7 @@ import logger from './services/logger.js';
 import cache from './services/cacheService.js';
 import monitoringRoutes from './routes/monitoringRoutes.js';
 import cacheRoutes from './routes/cacheRoutes.js';
+import avatarRoutes from './routes/avatarRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import organizationRoutes from './routes/organizationRoutes.js';
 import studentRoutes from './routes/studentRoutes.js';
@@ -127,6 +128,7 @@ app.use('/api/v1/privacy', dataPrivacyRoutes);
 app.use('/api/v1/admin/integrations', integrationMarketplaceRoutes);
 app.use('/api/v1/admin/monitoring', monitoringRoutes);
 app.use('/api/v1/admin/cache', cacheRoutes);
+app.use('/api/v1/users', avatarRoutes);
 
 // Backward compatibility - redirect old /api/* routes to /api/v1/*
 app.use('/api/*', (req, res) => {
