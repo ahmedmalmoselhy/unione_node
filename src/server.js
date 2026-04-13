@@ -5,9 +5,13 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'node:http';
+import * as Sentry from '@sentry/node';
 import errorHandler from './middleware/errorHandler.js';
 import notFound from './middleware/notFound.js';
 import { initializeSocket } from './services/socketService.js';
+import { httpLogger } from './services/logger.js';
+import logger from './services/logger.js';
+import monitoringRoutes from './routes/monitoringRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import organizationRoutes from './routes/organizationRoutes.js';
 import studentRoutes from './routes/studentRoutes.js';
@@ -42,16 +46,32 @@ import { localeMiddleware } from './middleware/locale.js';
 
 dotenv.config();
 
+// Initialize Sentry
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV || 'development',
+    tracesSampleRate: 1.0,
+  });
+  logger.info('🔍 Sentry monitoring initialized');
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(helmet());
 app.use(cors());
-app.use(morgan('combined'));
+app.use(httpLogger); // Winston structured logging instead of morgan
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(localeMiddleware);
+
+// Sentry request handler (must be before routes)
+if (process.env.SENTRY_DSN) {
+  app.use(Sentry.Handlers.requestHandler());
+  app.use(Sentry.Handlers.tracingHandler());
+}
 
 // Health check route
 app.get('/health', (req, res) => {
@@ -61,6 +81,11 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// Sentry error handler (must be before other error handlers)
+if (process.env.SENTRY_DSN) {
+  app.use(Sentry.Handlers.errorHandler());
+}
 
 // API Routes - Versioned under /api/v1/
 app.use('/api/v1/auth', authRoutes);
@@ -93,6 +118,7 @@ app.use('/api/v1/admin/analytics', advancedAnalyticsRoutes);
 app.use('/api/v1/admin/bulk', bulkOperationRoutes);
 app.use('/api/v1/privacy', dataPrivacyRoutes);
 app.use('/api/v1/admin/integrations', integrationMarketplaceRoutes);
+app.use('/api/v1/admin/monitoring', monitoringRoutes);
 
 // Backward compatibility - redirect old /api/* routes to /api/v1/*
 app.use('/api/*', (req, res) => {
