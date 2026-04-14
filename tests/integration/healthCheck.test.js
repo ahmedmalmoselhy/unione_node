@@ -1,21 +1,9 @@
-const request = require('supertest');
-
-// Mock the database and Redis
-jest.mock('../src/config/knex.js', () => ({
-  __esModule: true,
-  default: {
-    raw: jest.fn().mockResolvedValue([{ '?column?': 1 }]),
-    schema: {
-      hasTable: jest.fn().mockResolvedValue(true),
-    },
-  },
-}));
+import request from 'supertest';
 
 describe('Health Check Endpoint', () => {
   let app;
 
   beforeAll(() => {
-    // Create minimal app for testing
     const express = require('express');
     app = express();
     app.get('/health', (req, res) => {

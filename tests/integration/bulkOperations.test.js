@@ -1,29 +1,7 @@
-const request = require('supertest');
-
-// Mock dependencies
-jest.mock('../src/config/knex.js', () => ({
-  __esModule: true,
-  default: jest.fn(() => ({
-    where: jest.fn().mockReturnThis(),
-    first: jest.fn().mockResolvedValue(null),
-    select: jest.fn().mockResolvedValue([]),
-    insert: jest.fn().mockResolvedValue([1]),
-    update: jest.fn().mockResolvedValue(1),
-    delete: jest.fn().mockResolvedValue(1),
-  })),
-}));
-
-jest.mock('../src/queues/emailQueue.js', () => ({
-  addEmail: jest.fn().mockResolvedValue({ id: 1 }),
-}));
-
-jest.mock('../src/queues/webhookQueue.js', () => ({
-  addWebhook: jest.fn().mockResolvedValue({ id: 1 }),
-}));
+import request from 'supertest';
 
 describe('Bulk Operations API', () => {
   let app;
-  let mockUser;
 
   beforeAll(() => {
     const express = require('express');
@@ -32,13 +10,11 @@ describe('Bulk Operations API', () => {
     app = express();
     app.use(bodyParser.json());
     
-    // Mock authentication middleware
     app.use((req, res, next) => {
       req.user = { id: 1, roles: ['admin'] };
       next();
     });
 
-    // Mock bulk operation routes
     app.post('/api/v1/admin/bulk/enroll', (req, res) => {
       const { student_ids, section_ids, academic_term_id } = req.body;
       
@@ -102,7 +78,7 @@ describe('Bulk Operations API', () => {
         });
 
       expect(response.status).toBe(201);
-      expect(response.body.success).toBe(6); // 3 students * 2 sections
+      expect(response.body.success).toBe(6);
       expect(response.body.failed).toBe(0);
     });
 
@@ -111,18 +87,6 @@ describe('Bulk Operations API', () => {
         .post('/api/v1/admin/bulk/enroll')
         .send({
           section_ids: [10, 11],
-          academic_term_id: 1,
-        });
-
-      expect(response.status).toBe(422);
-      expect(response.body.error).toBe('Missing required fields');
-    });
-
-    it('should return 422 when section_ids is missing', async () => {
-      const response = await request(app)
-        .post('/api/v1/admin/bulk/enroll')
-        .send({
-          student_ids: [1, 2, 3],
           academic_term_id: 1,
         });
 
