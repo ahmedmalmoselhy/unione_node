@@ -29,6 +29,7 @@
 ## 📊 Project Overview
 
 UniOne Frontend is a **React + TypeScript** single-page application that provides:
+
 - **Student Portal**: Course enrollment, grades, transcripts, attendance
 - **Professor Portal**: Grade submission, attendance management, announcements
 - **Admin Dashboard**: Full CRUD operations, analytics, bulk operations
@@ -43,32 +44,38 @@ UniOne Frontend is a **React + TypeScript** single-page application that provide
 ## 🛠️ Technology Stack
 
 ### Core
+
 - **React 18** - UI library
 - **TypeScript 5** - Type safety
 - **Vite 5** - Build tool & dev server
 - **React Router 6** - Client-side routing
 
 ### State Management
+
 - **Redux Toolkit** - Global state
 - **React Query** - Server state & caching
 - **Zustand** - Lightweight local state (optional)
 
 ### UI
+
 - **Tailwind CSS 3** - Utility-first styling
 - **Headless UI** - Unstyled accessible components
 - **Heroicons** - Icon library
 - **React Hot Toast** - Notifications
 
 ### Forms & Validation
+
 - **React Hook Form** - Form management
 - **Zod** - Schema validation
 - **@hookform/resolvers** - React Hook Form + Zod integration
 
 ### API & Real-time
+
 - **Axios** - HTTP client
 - **Socket.io Client** - Real-time notifications
 
 ### Testing
+
 - **Vitest** - Unit testing
 - **React Testing Library** - Component testing
 - **Playwright** - E2E testing
@@ -78,7 +85,7 @@ UniOne Frontend is a **React + TypeScript** single-page application that provide
 
 ## 📁 Project Structure
 
-```
+```bash
 unione_frontend/
 ├── public/                      # Static assets
 │   ├── favicon.ico
@@ -204,6 +211,7 @@ npm install -D vitest @testing-library/react @testing-library/jest-dom @testing-
 ```
 
 **Configure Tailwind** (`tailwind.config.js`):
+
 ```javascript
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -230,6 +238,7 @@ export default {
 ### Day 3-4: API Service & Authentication
 
 **Create Axios instance** (`src/services/api.ts`):
+
 ```typescript
 import axios, { AxiosInstance, AxiosError } from 'axios';
 
@@ -266,6 +275,7 @@ export default api;
 ```
 
 **Auth Service** (`src/services/auth.ts`):
+
 ```typescript
 import api from './api';
 
@@ -315,6 +325,7 @@ export const authService = {
 ### Day 5-7: Login Page & Protected Routes
 
 **Login Page** (`src/pages/auth/LoginPage.tsx`):
+
 ```typescript
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -404,6 +415,7 @@ export default function LoginPage() {
 ```
 
 **Protected Route Component** (`src/components/ProtectedRoute.tsx`):
+
 ```typescript
 import { Navigate, Outlet } from 'react-router-dom';
 
@@ -419,6 +431,7 @@ export default function ProtectedRoute() {
 ```
 
 **App Router** (`src/App.tsx`):
+
 ```typescript
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
@@ -451,8 +464,9 @@ export default App;
 
 ## 🎓 Phase 2: Student Portal (Week 2)
 
-### API Endpoints Used:
-```
+### API Endpoints Used
+
+```bash
 GET  /api/v1/student/profile
 GET  /api/v1/student/enrollments
 POST /api/v1/student/enrollments
@@ -468,7 +482,8 @@ GET  /api/v1/notifications
 POST /api/v1/notifications/read-all
 ```
 
-### Key Components to Build:
+### Key Components to Build
+
 1. **StudentDashboard** - Overview of enrollments, upcoming exams, recent grades
 2. **EnrollmentsPage** - List current enrollments, add/drop courses
 3. **GradesPage** - View grades by term, GPA calculation
@@ -558,8 +573,9 @@ export default function EnrollmentsPage() {
 
 ## 👨‍🏫 Phase 3: Professor Portal (Week 3)
 
-### API Endpoints Used:
-```
+### Professor Portal API Endpoints Used
+
+```bash
 GET  /api/v1/professor/profile
 GET  /api/v1/professor/sections
 GET  /api/v1/professor/schedule
@@ -573,7 +589,8 @@ POST /api/v1/professor/sections/{id}/announcements
 DELETE /api/v1/professor/sections/{id}/announcements/{id}
 ```
 
-### Key Components:
+### Key Components
+
 1. **ProfessorDashboard** - Overview of sections, pending grading, announcements
 2. **SectionsPage** - List assigned sections
 3. **GradingPage** - Submit/update grades for students
@@ -673,8 +690,9 @@ export default function GradingPage({ sectionId }: { sectionId: number }) {
 
 ## 👨‍💼 Phase 4: Admin Dashboard (Week 4)
 
-### API Endpoints Used:
-```
+### CRUD API Endpoints Used
+
+```bash
 # CRUD Operations
 GET/POST/PATCH/DELETE /api/v1/admin/students
 GET/POST/PATCH/DELETE /api/v1/admin/professors
@@ -698,7 +716,8 @@ GET/POST /api/v1/admin/imports/*
 GET /api/v1/admin/exports/*
 ```
 
-### Key Components:
+### Dashboard Key Components
+
 1. **AdminDashboard** - Overview stats, recent activity
 2. **StudentsPage** - CRUD table with search/filter
 3. **ProfessorsPage** - CRUD table
@@ -1108,6 +1127,7 @@ CMD ["nginx", "-g", "daemon off;"]
 ### Required Components (120+)
 
 #### UI Components (30+)
+
 - Button, Input, Select, Textarea, Checkbox, Radio
 - Modal, Dialog, Drawer, Tooltip, Popover
 - Table, Pagination, SortableHeader
@@ -1116,6 +1136,7 @@ CMD ["nginx", "-g", "daemon off;"]
 - Tabs, Accordion, Breadcrumbs
 
 #### Form Components (15+)
+
 - LoginForm, RegisterForm, ForgotPasswordForm
 - StudentForm, ProfessorForm, EmployeeForm
 - CourseForm, SectionForm
@@ -1123,22 +1144,26 @@ CMD ["nginx", "-g", "daemon off;"]
 - FileUpload, ImageCropper
 
 #### Layout Components (10+)
+
 - AppLayout, Header, Sidebar, Footer
 - StudentLayout, ProfessorLayout, AdminLayout
 - AuthLayout, ErrorBoundary
 
 #### Page Components (20+)
+
 - Auth: Login, ForgotPassword, ResetPassword
 - Student: Dashboard, Profile, Enrollments, Grades, Transcript, Schedule, Attendance
 - Professor: Dashboard, Sections, Grading, Attendance, Announcements
 - Admin: Dashboard, Students, Professors, Employees, Courses, Sections, Analytics, Settings
 
 #### Chart Components (10+)
+
 - EnrollmentTrendChart, GradeDistributionChart
 - AttendanceHeatmap, ProfessorWorkloadChart
 - CourseDemandChart, GPA Trend Chart
 
 #### Real-time Components (5+)
+
 - NotificationBell, LiveUpdates
 - SocketStatus, OnlineUsers
 
@@ -1168,11 +1193,11 @@ CMD ["nginx", "-g", "daemon off;"]
 
 ## 🔗 Useful Resources
 
-- **Backend API**: http://localhost:3000/api/v1
-- **API Documentation**: http://localhost:3000/docs (when set up)
+- **Backend API**: <http://localhost:3000/api/v1>
+- **API Documentation**: <http://localhost:3000/docs> (when set up)
 - **Postman Collection**: Available from backend
 - **Design System**: Tailwind CSS + Headless UI
-- **Icons**: Heroicons (https://heroicons.com)
+- **Icons**: Heroicons (<https://heroicons.com>)
 
 ---
 
