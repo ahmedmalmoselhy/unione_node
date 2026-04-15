@@ -1,5 +1,7 @@
 # Phase 1 Implementation Summary
 
+> Historical snapshot for the initial enhancement wave. For current repository state, see `CURRENT_STATUS.md`.
+
 **Date**: April 12, 2026  
 **Status**: ✅ **8/8 Complete (100%)**  
 **Timeline**: Week 1-2 of 4 planned
@@ -221,7 +223,7 @@ npm run dev
 | Metric | Before | After | Change |
 |--------|--------|-------|--------|
 | **API Response Time** | Synchronous | Asynchronous | ~90% faster |
-| **File Support** | CSV only | CSV + Excel | +100% |
+| **File Support** | CSV baseline | CSV + Excel | +100% |
 | **Email Delivery** | Partial | Complete | +60% |
 | **API Versioning** | None | v1 with redirects | ✅ |
 | **Prerequisites** | Implemented | Verified working | ✅ |

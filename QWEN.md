@@ -264,13 +264,12 @@ See `.env.example` for the full list. Key variables:
 - Integration tests for auth, organization, student/professor, announcements, notifications, scoped admin access
 - GitHub Actions CI workflow (`.github/workflows/node.yml`)
 
-### ⏳ In Progress / Planned
+### ⏳ Remaining Work
 
 - Frontend React application (not yet created)
-- Job queue infrastructure (`jobs/` directory not yet present)
 - Comprehensive E2E test coverage
-- Outbound email delivery testing with real SMTP
-- Docker containerization
+- Outbound email delivery testing with real SMTP infrastructure
+- Production observability hardening and alerting
 
 ---
 
