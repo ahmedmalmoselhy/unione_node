@@ -320,7 +320,7 @@ npm create vite@latest unione_frontend -- --template react-ts
 - Development patterns documented
 - Examples provided
 
-### ⏳ Ready to Start
+### ⏳ Next Frontend Actions
 
 - Project scaffold creation
 - Dependency installation
